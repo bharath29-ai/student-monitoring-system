@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "525714936206",
+    "project_id": "app-084e0d55",
+    "storage_bucket": "app-084e0d55.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:525714936206:android:656cbc427523746e4694df",
+        "android_client_info": {
+          "package_name": "com.smartclasspulse.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "525714936206-j72pchf52dlraduaf8lp8dndl4ki2qj5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7oBV3zAwpIv_wM66OK9fE7PC0I9LKN_k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "525714936206-j72pchf52dlraduaf8lp8dndl4ki2qj5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

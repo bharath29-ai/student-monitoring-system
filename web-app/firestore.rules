@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isApproved() {
+      return isAuthenticated() && getUserData().status == 'approved';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Allow user to read their own profile even if pending
+      // Allow others to read basic info for names/roles
+      allow read: if isAuthenticated();
+
+      // Allow signup
+      allow create: if request.auth.uid == userId;
+
+      // Only admins can change roles or status
+      // Users can update their own non-sensitive info (like name)
+      allow update: if hasRole('admin') || (
+        request.auth.uid == userId &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.status == resource.data.status
+      );
+
+      allow delete: if hasRole('admin');
+    }
+
+    // Classes collection
+    match /classes/{classId} {
+      allow read: if isApproved();
+      allow create, delete: if hasRole('admin') && isApproved();
+      // Allow students to enroll (updates the students array)
+      allow update: if hasRole('admin') || hasRole('student');
+    }
+
+    // Reports collection
+    match /reports/{reportId} {
+      allow create: if hasRole('student') && isApproved();
+      allow read: if isApproved() && (
+        hasRole('admin') ||
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid
+      );
+    }
+
+    // Classroom live status and history
+    match /classroom/{docId} {
+      allow read: if isApproved();
+      allow write: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+    }
+
+    match /classroom_history/{docId} {
+      allow read: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+      allow create: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+    }
+
+    // Original students collection (fallback for legacy components)
+    match /students/{studentId} {
+      allow read, write: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+    }
+  }
+}
