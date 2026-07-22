@@ -522,7 +522,11 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
 
       // Try to navigate directly to /admin as a student
       await driver.get(`${BASE_URL}/admin`);
-      await driver.sleep(1500);
+      try {
+        await driver.wait(until.elementLocated(By.xpath('//*[contains(text(), "Admin Access Required")]')), 15000);
+      } catch (e) {
+        reportGenerator.log(`Timeout waiting for Admin Access Required page text: ${e.message}`, 'WARNING');
+      }
       const pageText = await driver.findElement(By.css('body')).getText();
       studentAccessBlocked = pageText.includes("Admin Access Required");
 

@@ -284,7 +284,15 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       try {
         reportGenerator.log('Navigating to Classes management in Admin Panel...');
         const classesTab = await driver.findElement(By.xpath('//button[contains(., "Classes")]'));
-        await driver.executeScript("arguments[0].click();", classesTab);
+        await driver.executeScript(`
+          const el = arguments[0];
+          const events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
+          events.forEach(type => {
+            const ev = new MouseEvent(type, { bubbles: true, cancelable: true, view: window });
+            el.dispatchEvent(ev);
+          });
+        `, classesTab);
+        await driver.sleep(1500); // Wait for tab transition animation
         await driver.wait(until.elementLocated(By.xpath('//h3[contains(text(), "Create New Class")]')), 15000);
 
         // Fill out form
@@ -377,7 +385,11 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       try {
         reportGenerator.log('Trying to access /admin directly as student...');
         await driver.get(`${BASE_URL}/admin`);
-        await driver.sleep(1500);
+        try {
+          await driver.wait(until.elementLocated(By.xpath('//*[contains(text(), "Admin Access Required")]')), 15000);
+        } catch (e) {
+          reportGenerator.log(`Timeout waiting for Admin Access Required page text: ${e.message}`, 'WARNING');
+        }
         const pageText = await driver.findElement(By.css('body')).getText();
         expect(pageText).to.include("Admin Access Required");
         reportGenerator.log('Verified student is blocked from admin panel.');
@@ -450,7 +462,7 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
 
         // Verify stats card is present
         reportGenerator.log('Waiting for Teacher Dashboard metrics cards to load...');
-        await driver.wait(until.elementLocated(By.xpath('//p[contains(text(), "Total Students") or contains(text(), "Attentive")]')), 15000);
+        await driver.wait(until.elementLocated(By.xpath('//*[contains(text(), "Distracted")]')), 15000);
         
         const pageText = await driver.findElement(By.css('body')).getText();
         expect(pageText).to.include('Attentive');
