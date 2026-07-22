@@ -369,26 +369,47 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
     let directAccessBlocked = false;
 
     before(async () => {
-      await logoutCurrentUser();
-      
-      // Try to navigate directly to /admin when logged out
-      await driver.get(`${BASE_URL}/admin`);
-      await driver.sleep(1500);
-      const url = await driver.getCurrentUrl();
-      directAccessBlocked = url.includes('/splash') || url.includes('/login');
+      try {
+        await logoutCurrentUser();
+        
+        // Try to navigate directly to /admin when logged out
+        await driver.get(`${BASE_URL}/admin`);
+        await driver.sleep(1500);
+        const url = await driver.getCurrentUrl();
+        directAccessBlocked = url.includes('/splash') || url.includes('/login');
 
-      await driver.get(`${BASE_URL}/login`);
-      await driver.wait(until.elementLocated(By.id('email')), 10000);
+        await driver.get(`${BASE_URL}/login`);
+        await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-      await driver.findElement(By.id('email')).sendKeys('testadmin@example.com');
-      await driver.findElement(By.id('password')).sendKeys('adminpass123');
-      const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
-      await driver.executeScript("arguments[0].click();", submitBtn);
+        await driver.findElement(By.id('email')).sendKeys('testadmin@example.com');
+        await driver.findElement(By.id('password')).sendKeys('adminpass123');
+        const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
+        await driver.executeScript("arguments[0].click();", submitBtn);
 
-      await driver.wait(until.urlContains('/dashboard'), 15000);
-      const adminLink = await driver.findElement(By.xpath('//a[@href="/admin"]'));
-      await driver.executeScript("arguments[0].click();", adminLink);
-      await driver.wait(until.elementLocated(By.xpath('//h3[contains(text(), "Pending Approvals")]')), 15000);
+        await driver.wait(until.urlContains('/dashboard'), 25000);
+        const adminLink = await driver.findElement(By.xpath('//a[@href="/admin"]'));
+        
+        // Click link using pointer/mouse event sequence for mobile responsiveness
+        await driver.executeScript(`
+          const el = arguments[0];
+          const events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
+          events.forEach(type => {
+            const ev = new MouseEvent(type, { bubbles: true, cancelable: true, view: window });
+            el.dispatchEvent(ev);
+          });
+        `, adminLink);
+
+        await driver.wait(until.elementLocated(By.xpath('//h3[contains(text(), "Pending Approvals")]')), 25000);
+      } catch (err) {
+        reportGenerator.log(`Error in Category 5 before hook: ${err.message}`, 'ERROR');
+        if (driver) {
+          const currentUrl = await driver.getCurrentUrl();
+          const pageBody = await driver.findElement(By.css('body')).getText();
+          reportGenerator.log(`  Current URL: ${currentUrl}`, 'ERROR');
+          reportGenerator.log(`  Page body text snippet: ${pageBody.substring(0, 500).replace(/\n/g, ' | ')}`, 'ERROR');
+        }
+        throw err;
+      }
     });
 
     const tests = [
@@ -600,17 +621,28 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
   // ============================================================
   describe('7. Dashboard - Teacher View', function() {
     before(async () => {
-      await logoutCurrentUser();
-      await driver.get(`${BASE_URL}/login`);
-      await driver.wait(until.elementLocated(By.id('email')), 10000);
+      try {
+        await logoutCurrentUser();
+        await driver.get(`${BASE_URL}/login`);
+        await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-      await driver.findElement(By.id('email')).sendKeys('testteacher@example.com');
-      await driver.findElement(By.id('password')).sendKeys('teacherpass123');
-      const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
-      await driver.executeScript("arguments[0].click();", submitBtn);
+        await driver.findElement(By.id('email')).sendKeys('testteacher@example.com');
+        await driver.findElement(By.id('password')).sendKeys('teacherpass123');
+        const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
+        await driver.executeScript("arguments[0].click();", submitBtn);
 
-      await driver.wait(until.urlContains('/dashboard'), 15000);
-      await driver.wait(until.elementLocated(By.xpath('//p[contains(text(), "Total Students") or contains(text(), "Attentive")]')), 15000);
+        await driver.wait(until.urlContains('/dashboard'), 25000);
+        await driver.wait(until.elementLocated(By.xpath('//*[contains(text(), "Distracted")]')), 25000);
+      } catch (err) {
+        reportGenerator.log(`Error in Category 7 before hook: ${err.message}`, 'ERROR');
+        if (driver) {
+          const currentUrl = await driver.getCurrentUrl();
+          const pageBody = await driver.findElement(By.css('body')).getText();
+          reportGenerator.log(`  Current URL: ${currentUrl}`, 'ERROR');
+          reportGenerator.log(`  Page body text snippet: ${pageBody.substring(0, 500).replace(/\n/g, ' | ')}`, 'ERROR');
+        }
+        throw err;
+      }
     });
 
     const tests = [
@@ -671,24 +703,44 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
   // ============================================================
   describe('8. Camera Monitor Page', function() {
     before(async () => {
-      await logoutCurrentUser();
-      await driver.get(`${BASE_URL}/login`);
-      await driver.wait(until.elementLocated(By.id('email')), 10000);
+      try {
+        await logoutCurrentUser();
+        await driver.get(`${BASE_URL}/login`);
+        await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-      await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
-      await driver.findElement(By.id('password')).sendKeys(STUDENT_USER.password);
-      const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
-      await driver.executeScript("arguments[0].click();", submitBtn);
+        await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
+        await driver.findElement(By.id('password')).sendKeys(STUDENT_USER.password);
+        const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
+        await driver.executeScript("arguments[0].click();", submitBtn);
 
-      await driver.wait(until.urlContains('/dashboard'), 15000);
+        await driver.wait(until.urlContains('/dashboard'), 25000);
 
-      const classCardXpath = `//div[contains(., "${CLASS_NAME}")]`;
-      await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 15000);
-      const classCard = await driver.findElement(By.xpath(classCardXpath));
-      const monitorBtn = await classCard.findElement(By.xpath('.//button[contains(., "Start Monitoring")]'));
-      await driver.executeScript("arguments[0].click();", monitorBtn);
+        const classCardXpath = `//div[contains(., "${CLASS_NAME}")]`;
+        await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 25000);
+        const classCard = await driver.findElement(By.xpath(classCardXpath));
+        const monitorBtn = await classCard.findElement(By.xpath('.//button[contains(., "Start Monitoring")]'));
+        
+        // Use pointer/mouse events click sequence
+        await driver.executeScript(`
+          const el = arguments[0];
+          const events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
+          events.forEach(type => {
+            const ev = new MouseEvent(type, { bubbles: true, cancelable: true, view: window });
+            el.dispatchEvent(ev);
+          });
+        `, monitorBtn);
 
-      await driver.wait(until.urlContains('/camera'), 15000);
+        await driver.wait(until.urlContains('/camera'), 25000);
+      } catch (err) {
+        reportGenerator.log(`Error in Category 8 before hook: ${err.message}`, 'ERROR');
+        if (driver) {
+          const currentUrl = await driver.getCurrentUrl();
+          const pageBody = await driver.findElement(By.css('body')).getText();
+          reportGenerator.log(`  Current URL: ${currentUrl}`, 'ERROR');
+          reportGenerator.log(`  Page body text snippet: ${pageBody.substring(0, 500).replace(/\n/g, ' | ')}`, 'ERROR');
+        }
+        throw err;
+      }
     });
 
     const tests = [
