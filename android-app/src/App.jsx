@@ -19,6 +19,7 @@ import AdminPanel from '@/pages/AdminPanel';
 import Security from '@/pages/Security';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
+import Profile from '@/pages/Profile';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { SnapshotProvider } from '@/lib/SnapshotContext';
 
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
           <Route path="/camera" element={<PageTransition><CameraMonitor /></PageTransition>} />
           <Route path="/admin" element={<PageTransition><AdminPanel /></PageTransition>} />
           <Route path="/security" element={<PageTransition><Security /></PageTransition>} />
+          <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
         </Route>
 
         {/* Catch-all */}

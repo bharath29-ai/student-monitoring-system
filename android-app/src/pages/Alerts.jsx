@@ -85,55 +85,87 @@ export default function Alerts() {
   };
 
   return (
-    <div className="space-y-6 animate-slide-up">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-extrabold text-foreground">Alerts</h1>
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="px-2.5">{unreadCount} new</Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={markAllRead} className="gap-2 text-xs">
-            <CheckCheck className="w-3.5 h-3.5" /> Mark all read
-          </Button>
-          <Button variant="outline" size="sm" onClick={clearAll} className="gap-2 text-xs text-destructive">
-            <Trash2 className="w-3.5 h-3.5" /> Clear
-          </Button>
+    <div className="space-y-6 animate-slide-up pb-10">
+      {/* Page Header */}
+      <div className="flex flex-col gap-3 border-b border-border/40 pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-extrabold text-foreground tracking-tight italic">Attention Alerts</h1>
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="px-2.5 py-0.5 rounded-full font-black animate-pulse text-[9px]">
+                {unreadCount} New
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-1.5">
+            <Button 
+              variant="outline" 
+              onClick={markAllRead} 
+              className="h-10 rounded-full font-bold text-xs uppercase tracking-wide gap-1.5 px-4 border-border/50 hover:bg-secondary"
+            >
+              <CheckCheck className="w-4 h-4 text-primary" /> Read All
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={clearAll} 
+              className="h-10 rounded-full font-bold text-xs uppercase tracking-wide gap-1.5 px-4 border-destructive/20 text-destructive hover:bg-destructive/5"
+            >
+              <Trash2 className="w-4 h-4" /> Clear
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Tabs defaultValue="all" onValueChange={setFilter}>
-        <TabsList className="bg-secondary">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="distracted">Distracted</TabsTrigger>
-          <TabsTrigger value="sleepy">Sleepy</TabsTrigger>
-          <TabsTrigger value="low_attention">Low Attention</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Segmented Chips for Filter */}
+      <div className="overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none shrink-0">
+        <div className="flex items-center gap-2 min-w-max">
+          {[
+            { value: 'all', label: 'All Alerts' },
+            { value: 'distracted', label: 'Looking Away' },
+            { value: 'sleepy', label: 'Drowsiness' },
+            { value: 'low_attention', label: 'Drop in Focus' }
+          ].map(opt => {
+            const isActive = filter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setFilter(opt.value)}
+                className={`h-10 px-5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-200 border ${
+                  isActive 
+                    ? 'bg-primary border-primary text-primary-foreground shadow-md shadow-primary/10 font-extrabold' 
+                    : 'bg-card border-border/60 text-muted-foreground hover:bg-secondary/50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      {/* Captured Snapshots from Camera */}
+      {/* Captured Snapshots from Camera (Material You Elevated Card) */}
       {snapshots.length > 0 && (
-        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm space-y-4">
+        <div className="rounded-[28px] bg-card border border-border/50 p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-sm text-foreground">Classroom Snapshots</span>
-              <Badge variant="outline" className="text-[10px]">{snapshots.length}</Badge>
+              <ImageIcon className="w-4 h-4 text-primary animate-pulse" />
+              <span className="font-black text-xs uppercase tracking-wider text-muted-foreground">Classroom Live Captures</span>
+              <Badge variant="outline" className="text-[10px] font-black rounded-full bg-secondary">{snapshots.length}</Badge>
             </div>
-            <button onClick={clearSnapshots} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
-              Clear
+            <button onClick={clearSnapshots} className="text-xs font-bold text-muted-foreground hover:text-destructive transition-colors">
+              Clear All
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {snapshots.map(snap => (
-              <div key={snap.id} className="rounded-xl overflow-hidden border border-border bg-black relative">
+              <div key={snap.id} className="rounded-2xl overflow-hidden border border-border bg-black relative shadow-sm group">
                 <img src={snap.snapshot} alt="snapshot" className="w-full aspect-video object-cover" />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1.5">
-                  <p className="text-[10px] font-semibold text-white truncate">{snap.label}</p>
-                  <p className="text-[9px] text-white/60">{snap.time}</p>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/75 px-3 py-2">
+                  <p className="text-[10px] font-bold text-white truncate">{snap.label}</p>
+                  <p className="text-[9px] text-white/60 font-semibold">{snap.time}</p>
                 </div>
-                <div className={`absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded text-white ${
+                <div className={`absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full text-white shadow-md ${
                   snap.attention >= 70 ? 'bg-green-600' : snap.attention >= 40 ? 'bg-yellow-600' : 'bg-red-600'
                 }`}>
                   {snap.attention}%
@@ -144,12 +176,13 @@ export default function Alerts() {
         </div>
       )}
 
+      {/* Alerts Feed */}
       <div className="space-y-3">
         {filteredAlerts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <Bell className="w-12 h-12 mb-4 opacity-30" />
-            <p className="text-sm font-medium">No alerts yet</p>
-            <p className="text-xs mt-1">Alerts will appear when attention issues are detected</p>
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border-2 border-dashed border-border/40 rounded-[28px] p-6 bg-secondary/10">
+            <Bell className="w-12 h-12 mb-3 opacity-30 text-primary" />
+            <p className="text-sm font-bold">All clear!</p>
+            <p className="text-xs text-center opacity-85 mt-1">Real-time alerts will trigger here when students display low engagement.</p>
           </div>
         ) : (
           filteredAlerts.map((alert, i) => (

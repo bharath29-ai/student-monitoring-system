@@ -231,129 +231,73 @@ export default function CameraMonitor() {
 
   if (!user) return null;
 
-  if (isMobile) {
-    return (
-      <MobileCameraMonitor
-        videoRef={videoRef}
-        canvasOverlayRef={canvasOverlayRef}
-        cameraActive={cameraActive}
-        startCamera={startCamera}
-        stopCamera={stopCamera}
-        analyzing={analyzing}
-        autoAnalyze={autoAnalyze}
-        setAutoAnalyze={setAutoAnalyze}
-        analysisData={analysisData}
-        lastReportTime={lastReportTime}
-        engineStatus={engineStatus}
-        debugLog={debugLog}
-        faceDetected={faceDetected}
-        brightnessBoost={brightnessBoost}
-        setBrightnessBoost={setBrightnessBoost}
-        enrolledClasses={enrolledClasses}
-        selectedClassId={selectedClassId}
-        setSelectedClassId={setSelectedClassId}
-      />
-    );
-  }
-
   return (
-    <DesktopCameraMonitor
-      videoRef={videoRef}
-      canvasOverlayRef={canvasOverlayRef}
-      cameraActive={cameraActive}
-      startCamera={startCamera}
-      stopCamera={stopCamera}
-      analyzing={analyzing}
-      autoAnalyze={autoAnalyze}
-      setAutoAnalyze={setAutoAnalyze}
-      analysisData={analysisData}
-      lastReportTime={lastReportTime}
-      engineStatus={engineStatus}
-      debugLog={debugLog}
-      faceDetected={faceDetected}
-      brightnessBoost={brightnessBoost}
-      setBrightnessBoost={setBrightnessBoost}
-      enrolledClasses={enrolledClasses}
-      selectedClassId={selectedClassId}
-      setSelectedClassId={setSelectedClassId}
-    />
-  );
-}
-
-// ── MOBILE CAMERA MONITOR COMPONENT (Android / Native Look) ──
-function MobileCameraMonitor({
-  videoRef,
-  canvasOverlayRef,
-  cameraActive,
-  startCamera,
-  stopCamera,
-  analyzing,
-  autoAnalyze,
-  setAutoAnalyze,
-  analysisData,
-  lastReportTime,
-  engineStatus,
-  debugLog,
-  faceDetected,
-  brightnessBoost,
-  setBrightnessBoost,
-  enrolledClasses,
-  selectedClassId,
-  setSelectedClassId
-}) {
-  return (
-    <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full gap-4 relative animate-slide-up pb-10">
-      {/* Immersive Video Feed */}
-      <div className="flex-1 w-full bg-zinc-950 rounded-[32px] overflow-hidden border-4 border-card relative shadow-2xl">
+    <div className="flex flex-col min-h-full w-full gap-4 relative animate-slide-up pb-10">
+      {/* ── Immersive Full-Screen style Video Feed ── */}
+      <div className="w-full aspect-[4/3] sm:aspect-video bg-zinc-950 rounded-[32px] overflow-hidden border border-border/50 relative shadow-2xl shrink-0 flex flex-col justify-center">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
+          className={`w-full h-full object-cover transition-opacity duration-700 ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
         />
         <canvas ref={canvasOverlayRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
         {/* Video Standby Overlay */}
         {!cameraActive && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-zinc-900/90 backdrop-blur-md">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-zinc-900/95 backdrop-blur-md">
             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shadow-xl">
               <CameraOff className="w-8 h-8 text-white/30" />
             </div>
-            <p className="text-xs font-bold text-white/40 uppercase tracking-[0.25em]">Camera Standby</p>
+            <p className="text-xs font-black text-white/40 uppercase tracking-[0.25em]">Camera Standby</p>
+            <p className="text-[10px] text-white/20 font-bold text-center px-6">
+              Start the camera feed below to begin real-time face tracking analysis.
+            </p>
           </div>
         )}
 
-        {/* Active Analysis Overlay */}
-        {analysisData && cameraActive && faceDetected && (
-          <div className={`absolute top-4 left-4 right-4 rounded-2xl px-4 py-3 text-xs font-black text-white shadow-2xl border border-white/15 backdrop-blur-xl animate-slide-up flex items-center gap-2.5 ${
-            analysisData.status === 'sleepy' ? 'bg-red-600/90' :
-            analysisData.status === 'distracted' ? 'bg-orange-600/90' : 'bg-green-600/90'
-          }`}>
-            <Activity className="w-4 h-4 animate-pulse" />
-            <span className="uppercase font-extrabold tracking-wider">{analysisData.status}</span>: {analysisData.observations}
-          </div>
-        )}
-
-        {/* Status Badges Overlay */}
+        {/* Floating AI Engine & Face Detection pill badges */}
         {cameraActive && (
-          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
-            <Badge className={`px-3 py-1.5 text-[9px] font-black rounded-full shadow-lg ${engineStatus === 'AI READY' ? 'bg-green-600' : 'bg-primary'}`}>
-              {engineStatus}
-            </Badge>
-            <Badge variant={faceDetected ? "default" : "destructive"} className="px-3 py-1.5 text-[9px] font-black rounded-full shadow-lg">
-              {faceDetected ? "DETECTION ONLINE" : "NO FACE DETECTED"}
-            </Badge>
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1.5 text-[9px] font-black tracking-wider uppercase rounded-full shadow-lg text-white backdrop-blur-md border ${
+                engineStatus === 'AI READY' ? 'bg-green-600/90 border-green-500/25' : 'bg-primary/90 border-primary/25'
+              }`}>
+                {engineStatus}
+              </span>
+              <span className={`px-3 py-1.5 text-[9px] font-black tracking-wider uppercase rounded-full shadow-lg text-white backdrop-blur-md border ${
+                faceDetected ? 'bg-indigo-600/90 border-indigo-500/25' : 'bg-red-600/90 border-red-500/25'
+              }`}>
+                {faceDetected ? "FACE SYNCED" : "NO FACE"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Active Analysis Overlay card */}
+        {analysisData && cameraActive && faceDetected && (
+          <div className="absolute bottom-4 left-4 right-4 pointer-events-none z-10">
+            <div className={`rounded-2xl px-4 py-3.5 text-xs font-black text-white shadow-2xl border border-white/15 backdrop-blur-xl animate-slide-up flex items-center gap-2.5 ${
+              analysisData.status === 'sleepy' ? 'bg-red-600/90' :
+              analysisData.status === 'distracted' ? 'bg-orange-600/90' : 'bg-green-600/90'
+            }`}>
+              <Activity className="w-4 h-4 animate-pulse shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="uppercase font-extrabold tracking-wider leading-none text-[10px] opacity-75">Behavior State</p>
+                <p className="font-bold text-[11px] truncate mt-0.5">{analysisData.observations}</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Target Class & Diagnostics Widget */}
+      {/* ── Diagnostics & Classroom Picker Controls ── */}
       <div className="grid grid-cols-1 gap-3 shrink-0">
-        <div className="rounded-[24px] bg-card border border-border p-4 shadow-xl flex flex-col gap-3">
+        <div className="rounded-[24px] bg-card border border-border p-4 shadow-sm flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-              <GraduationCap className="w-3.5 h-3.5 text-primary" /> Target Classroom
+              <GraduationCap className="w-4 h-4 text-primary" /> Target Classroom
             </label>
             {lastReportTime && (
               <span className="text-[9px] text-green-600 font-bold bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
@@ -362,7 +306,7 @@ function MobileCameraMonitor({
             )}
           </div>
           <Select value={selectedClassId} onValueChange={setSelectedClassId} disabled={autoAnalyze}>
-            <SelectTrigger className="w-full h-12 rounded-xl bg-secondary/35 border-none text-sm font-bold shadow-inner">
+            <SelectTrigger className="w-full h-12 rounded-2xl bg-secondary/40 border-none text-sm font-bold shadow-inner">
               <SelectValue placeholder="Choose classroom" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-none shadow-2xl">
@@ -373,20 +317,22 @@ function MobileCameraMonitor({
           </Select>
         </div>
 
-        {/* Touch brightness control */}
+        {/* Touch Brightness Gain (Only when active) */}
         {cameraActive && (
-          <div className="rounded-[24px] bg-card border border-border p-4 shadow-xl flex items-center justify-between gap-4">
+          <div className="rounded-[24px] bg-card border border-border p-3.5 shadow-sm flex items-center justify-between gap-4 animate-slide-up">
             <div className="flex items-center gap-2">
-              <Sun className="w-4 h-4 text-amber-500" />
+              <Sun className="w-4 h-4 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} />
               <span className="text-xs font-bold text-foreground">Sensory Gain</span>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               {[1.0, 1.2, 1.4, 1.6].map(val => (
                 <button
                   key={val}
                   onClick={() => setBrightnessBoost(val)}
                   className={`w-9 h-8 rounded-lg text-xs font-bold border transition-all ${
-                    brightnessBoost === val ? 'bg-primary border-primary text-primary-foreground font-black' : 'border-border text-muted-foreground hover:bg-secondary'
+                    brightnessBoost === val 
+                      ? 'bg-primary border-primary text-primary-foreground font-black' 
+                      : 'border-border text-muted-foreground hover:bg-secondary'
                   }`}
                 >
                   {val}x
@@ -396,247 +342,76 @@ function MobileCameraMonitor({
           </div>
         )}
 
-        {/* Diagnostics Output */}
+        {/* Diagnostics Log overlay */}
         <div className="bg-zinc-900 border border-white/5 rounded-[20px] p-3 flex items-center gap-3 shadow-inner">
           <Terminal className="w-4 h-4 text-primary shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] font-black text-white/25 uppercase tracking-wider">Diagnostics Console</p>
-            <p className="text-[11px] font-mono text-white/70 truncate italic">{debugLog}</p>
+            <p className="text-[9px] font-black text-white/20 uppercase tracking-wider">Engine Log</p>
+            <p className="text-[10px] font-mono text-white/70 truncate italic leading-tight mt-0.5">{debugLog}</p>
           </div>
         </div>
       </div>
 
-      {/* Large Attention Score Cards (Mobile Native Look) */}
+      {/* ── Metric Score Cards ── */}
       <div className="grid grid-cols-2 gap-3 shrink-0">
-        <div className={`p-4 rounded-[24px] border transition-all flex flex-col justify-between h-20 ${
-          analysisData?.status === 'attentive' ? 'bg-green-500/10 border-green-500/20' : 'bg-card border-border'
+        <div className={`p-4 rounded-[24px] border transition-all flex flex-col justify-between h-20 shadow-sm ${
+          analysisData?.status === 'attentive' ? 'bg-green-500/10 border-green-500/20' : 'bg-card border-border/50'
         }`}>
-          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Attention</span>
+          <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Attention Score</span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className={`text-2xl font-black ${analysisData?.status === 'attentive' ? 'text-green-500' : 'text-foreground'}`}>
+            <span className={`text-xl font-black ${analysisData?.status === 'attentive' ? 'text-green-500' : 'text-foreground'}`}>
               {analysisData?.status === 'attentive' ? '100%' : analysisData ? '0%' : '—'}
             </span>
-            <span className="text-[9px] font-bold text-muted-foreground">Focus</span>
+            <span className="text-[8px] font-bold text-muted-foreground uppercase">Real-time</span>
           </div>
         </div>
 
-        <div className={`p-4 rounded-[24px] border transition-all flex flex-col justify-between h-20 ${
-          analysisData?.status === 'distracted' ? 'bg-orange-500/10 border-orange-500/20' : 
-          analysisData?.status === 'sleepy' ? 'bg-red-500/10 border-red-500/20' : 'bg-card border-border'
+        <div className={`p-4 rounded-[24px] border transition-all flex flex-col justify-between h-20 shadow-sm ${
+          analysisData?.status === 'sleepy' ? 'bg-red-500/10 border-red-500/20' : 
+          analysisData?.status === 'distracted' ? 'bg-orange-500/10 border-orange-500/20' : 'bg-card border-border/50'
         }`}>
-          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Alert State</span>
+          <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Session Status</span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className={`text-sm font-black uppercase tracking-wide ${
-              analysisData?.status === 'sleepy' ? 'text-red-500' :
-              analysisData?.status === 'distracted' ? 'text-orange-500' : 'text-muted-foreground'
+            <span className={`text-xs font-black uppercase tracking-wide truncate max-w-[100px] ${
+              analysisData?.status === 'sleepy' ? 'text-red-500 animate-pulse' :
+              analysisData?.status === 'distracted' ? 'text-orange-500' : 
+              analysisData?.status === 'attentive' ? 'text-green-500' : 'text-muted-foreground'
             }`}>
-              {analysisData?.status || 'No Session'}
+              {analysisData?.status || 'Inactive'}
             </span>
-            <span className="text-[9px] font-bold text-muted-foreground">Status</span>
+            <span className="text-[8px] font-bold text-muted-foreground uppercase">Analysis</span>
           </div>
         </div>
       </div>
 
-      {/* Large Tappable Control Buttons */}
+      {/* ── Start/Stop Control Panel Fixed at Bottom ── */}
       <div className="grid grid-cols-2 gap-3 shrink-0">
         <button
           onClick={cameraActive ? stopCamera : startCamera}
-          className={`h-16 text-xs font-black uppercase tracking-wider rounded-[20px] shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all ${
+          className={`h-14 text-xs font-black uppercase tracking-wider rounded-full shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all ${
             cameraActive 
               ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-destructive/10'
               : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20'
           }`}
         >
-          {cameraActive ? <><CameraOff className="w-5 h-5" /> Close Feed</> : <><Camera className="w-5 h-5" /> Open Feed</>}
+          {cameraActive ? <><CameraOff className="w-4 h-4" /> Close Feed</> : <><Camera className="w-4 h-4" /> Open Camera</>}
         </button>
 
         <button
           onClick={() => setAutoAnalyze(v => !v)}
           disabled={!cameraActive}
-          className={`h-16 text-xs font-black uppercase tracking-wider rounded-[20px] shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 ${
+          className={`h-14 text-xs font-black uppercase tracking-wider rounded-full shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 ${
             autoAnalyze 
-              ? 'bg-zinc-800 text-white shadow-zinc-800/10' 
+              ? 'bg-zinc-800 text-white shadow-zinc-800/10 dark:bg-zinc-700' 
               : 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/20'
           }`}
         >
           {autoAnalyze ? (
-            <><RefreshCw className="w-4 h-4 animate-spin" /> Stop Sync</>
+            <><RefreshCw className="w-4 h-4 animate-spin" /> Stop AI</>
           ) : (
             <><Eye className="w-4 h-4" /> Start AI</>
           )}
         </button>
-      </div>
-    </div>
-  );
-}
-
-// ── DESKTOP CAMERA MONITOR COMPONENT (Untouched Original) ──
-function DesktopCameraMonitor({
-  videoRef,
-  canvasOverlayRef,
-  cameraActive,
-  startCamera,
-  stopCamera,
-  analyzing,
-  autoAnalyze,
-  setAutoAnalyze,
-  analysisData,
-  lastReportTime,
-  engineStatus,
-  debugLog,
-  faceDetected,
-  brightnessBoost,
-  setBrightnessBoost,
-  enrolledClasses,
-  selectedClassId,
-  setSelectedClassId
-}) {
-  return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-slide-up pb-20 px-4 pt-4">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black text-foreground tracking-tighter flex items-center gap-3 uppercase italic">
-            <Zap className="w-8 h-8 text-green-500 fill-green-500" /> SMART MONITOR Pro
-          </h1>
-          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest opacity-60">Engine v26.0 - Full Behavioral Stats</p>
-        </div>
-        <div className="flex items-center gap-3">
-           <Badge className={`px-4 py-1.5 text-xs font-black rounded-full shadow-lg ${engineStatus === 'AI READY' ? 'bg-green-600' : 'bg-primary'}`}>
-             {engineStatus}
-           </Badge>
-           <Badge variant={faceDetected ? "default" : "destructive"} className="px-4 py-1.5 text-xs font-black rounded-full shadow-lg">
-             {faceDetected ? "DETECTION ACTIVE" : "NO FACE"}
-           </Badge>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 space-y-4">
-          <div className="rounded-[40px] bg-zinc-950 border-[8px] border-card overflow-hidden shadow-2xl relative aspect-video">
-            <video ref={videoRef} autoPlay playsInline muted className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? 'opacity-100' : 'opacity-0'}`} />
-            <canvas ref={canvasOverlayRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-
-            {!cameraActive && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-zinc-900/90 backdrop-blur-md">
-                <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shadow-2xl">
-                  <CameraOff className="w-10 h-10 text-white/20" />
-                </div>
-                <p className="text-sm font-black text-white/40 uppercase tracking-[0.4em]">Hardware Ready</p>
-              </div>
-            )}
-
-            {analysisData && cameraActive && faceDetected && (
-              <div className={`absolute top-6 left-6 rounded-2xl px-6 py-3 text-sm font-black text-white shadow-2xl border-2 border-white/20 backdrop-blur-xl animate-slide-up flex items-center gap-3 ${
-                analysisData.status === 'sleepy' ? 'bg-red-600 scale-105' :
-                analysisData.status === 'distracted' ? 'bg-orange-600' : 'bg-green-600'
-              }`}>
-                <Activity className="w-4 h-4" />
-                {analysisData.status.toUpperCase()}: {analysisData.observations}
-              </div>
-            )}
-          </div>
-
-          <div className="bg-zinc-900 border border-white/5 rounded-[24px] p-5 flex items-center gap-4 shadow-inner">
-             <Terminal className="w-5 h-5 text-primary" />
-             <div className="flex-1 space-y-1">
-                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest px-1">Diagnostics Output</p>
-                <p className="text-xs font-mono font-bold text-white/60 px-1 truncate italic uppercase">{debugLog}</p>
-             </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="rounded-[32px] bg-card border border-border p-6 shadow-xl space-y-6">
-            <div className="space-y-3 px-1">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                 <GraduationCap className="w-4 h-4 text-primary" /> Target Class
-              </label>
-              <Select value={selectedClassId} onValueChange={setSelectedClassId} disabled={autoAnalyze}>
-                <SelectTrigger className="w-full h-14 rounded-2xl bg-secondary/20 border-none text-base font-bold shadow-inner">
-                  <SelectValue placeholder="Choose classroom" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-none shadow-2xl">
-                  {enrolledClasses.map(cls => (
-                    <SelectItem key={cls.id} value={cls.id} className="h-12 font-bold">{cls.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {lastReportTime && (
-              <div className="flex items-center gap-3 text-[10px] text-green-600 font-black bg-green-50 p-4 rounded-2xl border border-green-100 animate-slide-up">
-                <CheckCircle2 className="w-4 h-4" /> REPORT SYNCED: {lastReportTime}
-              </div>
-            )}
-          </div>
-
-          <div className="grid gap-4">
-            <Button
-              variant={cameraActive ? "destructive" : "default"}
-              onClick={cameraActive ? stopCamera : startCamera}
-              size="lg"
-              className="h-24 text-base font-black gap-4 rounded-[32px] shadow-2xl w-full transition-all active:scale-95 shadow-primary/10"
-            >
-              {cameraActive ? <><CameraOff className="w-7 h-7" /> CLOSE FEED</> : <><Camera className="w-7 h-7" /> OPEN CAMERA</>}
-            </Button>
-
-            <Button
-              onClick={() => setAutoAnalyze(v => !v)}
-              size="lg"
-              className={`h-24 text-base font-black gap-4 rounded-[32px] shadow-2xl w-full transition-all active:scale-95 ${autoAnalyze ? 'bg-zinc-800' : 'bg-green-600 hover:bg-green-700 text-white shadow-green-500/20'}`}
-              disabled={!cameraActive}
-            >
-              {autoAnalyze ? (
-                <><RefreshCw className="w-6 h-6 animate-spin" /> STOP MONITOR</>
-              ) : (
-                <><Eye className="w-6 h-6" /> START MONITOR</>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-2">
-          <Card className="bg-card border-none shadow-lg rounded-[28px] p-2">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                <User className="w-3 h-3 text-primary" /> Session Active
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-foreground">{faceDetected ? 1 : 0}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-none shadow-lg rounded-[28px] p-2 border-l-4 border-green-600">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                <CheckCircle2 className="w-3 h-3 text-green-500" /> Attentive
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-green-500">{analysisData?.status === 'attentive' ? 1 : 0}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-none shadow-lg rounded-[28px] p-2 border-l-4 border-orange-500">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                <AlertTriangle className="w-3 h-3 text-orange-500" /> Distracted
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-orange-500">{analysisData?.status === 'distracted' ? 1 : 0}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-none shadow-lg rounded-[28px] p-2 border-l-4 border-red-600">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                <Zap className="w-3 h-3 text-red-500" /> Sleepy
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-red-500">{analysisData?.status === 'sleepy' ? 1 : 0}</div>
-            </CardContent>
-          </Card>
       </div>
     </div>
   );

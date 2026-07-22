@@ -19,22 +19,25 @@ export default function AttentionGauge({ percentage = 0 }) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center rounded-2xl bg-card border border-border p-6 shadow-sm"
+      className="flex flex-col items-center justify-center p-2"
     >
-      <p className="text-sm font-medium text-muted-foreground mb-4">Classroom Attention</p>
-      <div className="relative w-44 h-44">
+      <div className="relative w-36 h-36">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
           <circle
-            cx="80" cy="80" r="70"
+            cx="80"
+            cy="80"
+            r="70"
             fill="none"
             stroke="hsl(var(--border))"
-            strokeWidth="10"
+            strokeWidth="12"
           />
           <motion.circle
-            cx="80" cy="80" r="70"
+            cx="80"
+            cy="80"
+            r="70"
             fill="none"
             stroke={colorInfo.stroke}
-            strokeWidth="10"
+            strokeWidth="12"
             strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
@@ -43,8 +46,8 @@ export default function AttentionGauge({ percentage = 0 }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-4xl font-extrabold ${colorInfo.text}`}>{percentage}%</span>
-          <span className="text-xs text-muted-foreground mt-1">{colorInfo.label}</span>
+          <span className={`text-3xl font-black ${colorInfo.text}`}>{percentage}%</span>
+          <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground mt-0.5">{colorInfo.label}</span>
         </div>
       </div>
     </motion.div>
