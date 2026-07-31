@@ -51,9 +51,7 @@ const AuthenticatedApp = () => {
 
   // Handle specific auth errors
   if (authError) {
-    if (authError.type === 'user_pending' || authError.type === 'user_rejected') {
-      return <UserPendingApproval message={authError.message} />;
-    }
+    // Blocking auth error display removed
   }
 
   return (

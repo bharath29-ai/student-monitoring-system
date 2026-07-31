@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.smartclasspulse.app.R;
 import com.smartclasspulse.app.UserSession;
 import com.smartclasspulse.app.models.ReportItem;
+import com.smartclasspulse.app.adapters.ReportAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import java.util.List;
 
 public class AlertsFragment extends Fragment {
 
@@ -41,12 +43,19 @@ public class AlertsFragment extends Fragment {
     private void loadAlerts() {
         if (session.getUserId() == null) return;
 
-        db.collection("alerts")
-                .whereEqualTo("studentId", session.getUserId())
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+        com.google.firebase.firestore.Query query;
+        if ("student".equals(session.getUserRole())) {
+            query = db.collection("alerts")
+                    .whereEqualTo("studentId", session.getUserId());
+        } else {
+            query = db.collection("alerts");
+        }
+
+        query.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    // Update adapter
+                    List<ReportItem> alerts = queryDocumentSnapshots.toObjects(ReportItem.class);
+                    recyclerView.setAdapter(new ReportAdapter(alerts));
                 });
     }
 }

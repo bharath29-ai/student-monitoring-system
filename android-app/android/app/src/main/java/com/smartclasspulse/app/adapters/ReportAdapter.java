@@ -27,9 +27,16 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ReportItem item = reports.get(position);
-        holder.statusText.setText("Status: " + item.getStatus());
-        holder.scoreText.setText("Score: " + item.getScore() + "%");
-        holder.dateText.setText(item.getTimestamp() != null ? item.getTimestamp().toDate().toString() : "No Date");
+        holder.nameText.setText(item.getStudentName() != null ? item.getStudentName() : "Student");
+        holder.statusText.setText(item.getStatus());
+        holder.scoreText.setText(item.getScore() + "%");
+        holder.obsText.setText(item.getObservations());
+        holder.dateText.setText(item.getTimestamp() != null ? item.getTimestamp().toDate().toString() : "");
+
+        int color = 0xFF4CAF50;
+        if ("distracted".equalsIgnoreCase(item.getStatus())) color = 0xFFFF9800;
+        else if ("sleepy".equalsIgnoreCase(item.getStatus())) color = 0xFFF44336;
+        holder.statusText.setTextColor(color);
     }
 
     @Override
@@ -38,12 +45,14 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView statusText, scoreText, dateText;
+        TextView nameText, statusText, scoreText, dateText, obsText;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            nameText = itemView.findViewById(R.id.reportStudentName);
             statusText = itemView.findViewById(R.id.reportStatusText);
             scoreText = itemView.findViewById(R.id.reportScoreText);
             dateText = itemView.findViewById(R.id.reportDateText);
+            obsText = itemView.findViewById(R.id.reportObservations);
         }
     }
 }

@@ -68,19 +68,19 @@ export default function Signup() {
         displayName: name
       });
 
-      // Save user data to Firestore with pending status
+      // Save user data to Firestore with approved status
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         name: name,
         email: email,
         role: role,
-        status: 'pending', // Requires admin approval
+        status: 'approved',
         createdAt: new Date().toISOString()
       });
 
       toast({
         title: "Account Created",
-        description: "Welcome! Your account is pending admin approval.",
+        description: "Welcome to the smart classroom system!",
       });
 
       navigate('/login');
@@ -163,6 +163,7 @@ export default function Signup() {
                   <SelectContent>
                     <SelectItem value="student">Student</SelectItem>
                     <SelectItem value="teacher">Teacher</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

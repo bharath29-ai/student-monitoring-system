@@ -28,7 +28,11 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ClassItem item = classes.get(position);
         holder.nameText.setText(item.getName());
-        holder.teacherText.setText(item.getTeacherName());
+        holder.teacherText.setText("Teacher: " + item.getTeacherName());
+        
+        holder.itemView.setOnClickListener(v -> {
+            android.widget.Toast.makeText(v.getContext(), "Selected: " + item.getName(), android.widget.Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override

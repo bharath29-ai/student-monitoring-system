@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.smartclasspulse.app.R;
 import com.smartclasspulse.app.UserSession;
 import com.smartclasspulse.app.models.ReportItem;
+import com.smartclasspulse.app.adapters.ReportAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -44,13 +45,20 @@ public class ReportsFragment extends Fragment {
     private void loadReports() {
         if (session.getUserId() == null) return;
 
-        db.collection("reports")
-                .whereEqualTo("studentId", session.getUserId())
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+        com.google.firebase.firestore.Query query;
+        if ("student".equals(session.getUserRole())) {
+            query = db.collection("reports")
+                    .whereEqualTo("studentId", session.getUserId());
+        } else {
+            // Teachers see all reports for classes they manage or all reports for now
+            query = db.collection("reports");
+        }
+
+        query.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<ReportItem> reports = queryDocumentSnapshots.toObjects(ReportItem.class);
-                    // Update adapter
+                    recyclerView.setAdapter(new ReportAdapter(reports));
                 });
     }
 }

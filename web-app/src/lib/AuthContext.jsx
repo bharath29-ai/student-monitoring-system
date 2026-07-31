@@ -36,23 +36,16 @@ export const AuthProvider = ({ children }) => {
               ...userData
             });
             setIsAuthenticated(true);
-
-            if (userData.status === 'pending') {
-              setAuthError({ type: 'user_pending', message: 'Your account is pending admin approval.' });
-            } else if (userData.status === 'rejected') {
-              setAuthError({ type: 'user_rejected', message: 'Your account has been rejected.' });
-            } else {
-              setAuthError(null);
-            }
+            setAuthError(null);
           } else {
             setUser({
               id: firebaseUser.uid,
               email: firebaseUser.email,
               role: 'student',
-              status: 'pending'
+              status: 'approved'
             });
             setIsAuthenticated(true);
-            setAuthError({ type: 'user_not_registered', message: 'User profile not found.' });
+            setAuthError(null);
           }
           setIsLoadingAuth(false);
           setAuthChecked(true);

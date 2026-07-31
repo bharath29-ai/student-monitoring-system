@@ -1,9 +1,12 @@
 package com.smartclasspulse.app.models;
 
+import java.util.List;
+
 public class ClassItem {
     private String id;
     private String name;
     private String teacherName;
+    private List<String> students;
 
     public ClassItem() {}
 
@@ -14,6 +17,11 @@ public class ClassItem {
     }
 
     public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    
     public String getName() { return name; }
     public String getTeacherName() { return teacherName; }
+    
+    public List<String> getStudents() { return students; }
+    public void setStudents(List<String> students) { this.students = students; }
 }

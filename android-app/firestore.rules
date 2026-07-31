@@ -17,7 +17,7 @@ service cloud.firestore {
     }
 
     function isApproved() {
-      return isAuthenticated() && getUserData().status == 'approved';
+      return isAuthenticated();
     }
 
     // Users collection

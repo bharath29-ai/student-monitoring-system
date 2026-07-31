@@ -1,7 +1,6 @@
 package com.smartclasspulse.app;
 
 import android.content.Intent;
-import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;

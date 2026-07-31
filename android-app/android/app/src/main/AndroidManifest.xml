@@ -21,6 +21,28 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".AdminActivity"
+            android:label="Admin Panel"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".MonitorActivity"
+            android:label="Student Monitoring"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity
+            android:name=".SignupActivity"
+            android:label="Create Account"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:label="Login"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
