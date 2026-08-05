@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Camera, CameraOff, RefreshCw, Eye, GraduationCap, CheckCircle2, AlertTriangle, Scan, Activity, Zap, Terminal, Shield, User, Sun } from 'lucide-react';
+import { Camera, CameraOff, RefreshCw, Eye, GraduationCap, CheckCircle2, AlertTriangle, Scan, Activity, Zap, Terminal, Shield, User, Sun, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
@@ -45,6 +45,27 @@ export default function CameraMonitor() {
 
   const [enrolledClasses, setEnrolledClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
+  const [teacherName, setTeacherName] = useState('Teacher');
+  const [wakeLock, setWakeLock] = useState(null);
+
+  // 0. Background / Wake Lock Support
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        const lock = await navigator.wakeLock.request('screen');
+        setWakeLock(lock);
+        console.log("Wake Lock Active: Screen will stay on.");
+      }
+    } catch (err) {
+      console.warn("Wake Lock Error:", err.message);
+    }
+  };
+
+  const releaseWakeLock = () => {
+    if (wakeLock) {
+      wakeLock.release().then(() => setWakeLock(null));
+    }
+  };
 
   // 1. Initialize AI Model
   useEffect(() => {
@@ -70,13 +91,23 @@ export default function CameraMonitor() {
     initAI();
   }, []);
 
-  // 2. Class Sync
+  // 2. Class & Teacher Sync
   useEffect(() => {
     if (user?.id && user?.role === 'student') {
       const q = query(collection(db, 'classes'), where('students', 'array-contains', user.id));
       const unsub = onSnapshot(q, (snapshot) => {
         setEnrolledClasses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
+
+      // Fetch assigned teacher name
+      if (user.teacherId) {
+        onSnapshot(doc(db, 'users', user.teacherId), (docSnap) => {
+          if (docSnap.exists()) {
+            setTeacherName(docSnap.data().name || 'Teacher');
+          }
+        });
+      }
+
       return () => unsub();
     }
   }, [user]);
@@ -114,17 +145,20 @@ export default function CameraMonitor() {
     setDebugLog("Standby.");
   };
 
-  // 3. The Core Analysis Logic
+  // 3. The Core Analysis Logic (NOW BACKGROUND CAPABLE)
   const runAnalysis = useCallback(async () => {
     if (isAnalyzingRef.current || !cameraActive || !detectorRef.current || !videoRef.current) return;
 
     if (videoRef.current.readyState < 2 || videoRef.current.videoWidth === 0) {
-       timerRef.current = setTimeout(runAnalysis, 500);
+       if (document.visibilityState === 'visible') {
+         requestAnimationFrame(runAnalysis);
+       } else {
+         timerRef.current = setTimeout(runAnalysis, 1000);
+       }
        return;
     }
 
     isAnalyzingRef.current = true;
-    setAnalyzing(true);
 
     try {
       // Create high-visibility buffer
@@ -147,86 +181,155 @@ export default function CameraMonitor() {
 
       if (!faces || faces.length === 0) {
         setFaceDetected(false);
-        setAnalysisData({ status: "distracted", observations: "Face not visible", attention_percentage: 0 });
-        setDebugLog("SCANNING... FACE NOT FOUND.");
+        setAnalysisData({ status: "Distracted", observations: "Face not visible", attention_percentage: 0 });
         if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
       } else {
         setFaceDetected(true);
         const face = faces[0];
         const points = face.keypoints;
-        const dist = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        const dist = (p1, p2) => {
+          if (!p1 || !p2) return 0;
+          return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        };
 
-        // Precision EAR Logic
-        const leftEAR = (dist(points[160], points[144]) + dist(points[158], points[153])) / (2 * dist(points[33], points[133]));
-        const rightEAR = (dist(points[385], points[380]) + dist(points[387], points[373])) / (2 * dist(points[362], points[263]));
+        // Precision EAR Logic (Eyes) - Added safety checks
+        const leftEAR = (dist(points[160], points[144]) + dist(points[158], points[153])) / (2 * dist(points[33], points[133]) || 1);
+        const rightEAR = (dist(points[385], points[380]) + dist(points[387], points[373])) / (2 * dist(points[362], points[263]) || 1);
         const avgEAR = (leftEAR + rightEAR) / 2;
 
-        const faceW = dist(points[234], points[454]);
-        const noseOffset = Math.abs(points[1].x - (points[234].x + points[454].x) / 2);
-        const headTurn = noseOffset / faceW;
+        // YAW (Left/Right)
+        const faceW = dist(points[234], points[454]) || 1;
+        const noseOffset = (points[1]?.x || 0) - ((points[234]?.x || 0) + (points[454]?.x || 0)) / 2;
+        const headYaw = (noseOffset / faceW) * 100;
 
-        let status = "attentive";
+        // PITCH (Up/Down)
+        const upperFace = dist(points[10], points[1]);
+        const lowerFace = dist(points[1], points[152]) || 1;
+        const headPitch = (upperFace / lowerFace);
+
+        // ROLL (Tilt)
+        const eyeDiffY = (points[263]?.y || 0) - (points[33]?.y || 0);
+        const eyeDiffX = (points[263]?.x || 0) - (points[33]?.x || 0);
+        const headRoll = Math.atan2(eyeDiffY, eyeDiffX || 1) * (180 / Math.PI);
+
+        let status = "Attentive";
         let score = 100;
         let msg = "Focused & Engaged";
 
-        if (avgEAR < 0.17) {
-          status = "sleepy"; score = 25; msg = "Warning: Student is Sleepy";
-        } else if (headTurn > 0.32) {
-          status = "distracted"; score = 45; msg = "Warning: Looking Away";
+        if (avgEAR < 0.16) {
+          status = "Sleepy"; score = 20; msg = "Eyes closed detected";
+        } else if (headYaw > 28 || headYaw < -28) {
+          status = "Distracted"; score = 40; msg = "Looking away from screen";
+        } else if (headPitch > 1.6) {
+          status = "Distracted"; score = 50; msg = "Looking down (Phone/Book)";
+        } else if (headPitch < 0.6) {
+          status = "Distracted"; score = 55; msg = "Looking up (Daydreaming)";
+        } else if (headRoll > 30 || headRoll < -30) {
+          status = "Distracted"; score = 60; msg = "Head tilted excessively";
         }
 
         setAnalysisData({ status, attention_percentage: score, observations: msg });
-        setDebugLog(`SUCCESS: ${status.toUpperCase()} (EAR: ${avgEAR.toFixed(2)})`);
+        setDebugLog(`LIVE: ${status.toUpperCase()} | Y:${headYaw.toFixed(0)} P:${headPitch.toFixed(1)} R:${headRoll.toFixed(0)}`);
 
         if (ctx) {
            ctx.clearRect(0, 0, canvas.width, canvas.height);
-           const color = status === 'sleepy' ? '#ff0000' : status === 'distracted' ? '#ffaa00' : '#00ff00';
+           const color = status === 'Sleepy' ? '#ff0000' : status === 'Distracted' ? '#ffaa00' : '#00ff00';
            ctx.strokeStyle = color;
            ctx.lineWidth = 10;
            ctx.strokeRect(face.box.xMin, face.box.yMin, face.box.width, face.box.height);
 
            ctx.fillStyle = color;
            [1, 33, 133, 362, 263].forEach(idx => {
-              ctx.beginPath();
-              ctx.arc(points[idx].x, points[idx].y, 12, 0, 2 * Math.PI);
-              ctx.fill();
+              if (points[idx]) {
+                ctx.beginPath();
+                ctx.arc(points[idx].x, points[idx].y, 12, 0, 2 * Math.PI);
+                ctx.fill();
+              }
            });
         }
 
-        if (selectedClassId) {
+        // Real-time Firestore Sync (Instant updates when status changes or every 2s)
+        const now = Date.now();
+        const statusChanged = !lastReportTime || analysisData?.status !== status;
+        const intervalPassed = !lastReportTime || now - new Date(lastReportTime).getTime() > 2000;
+
+        if (selectedClassId && (statusChanged || intervalPassed)) {
           const cls = enrolledClasses.find(c => c.id === selectedClassId);
+          const finalTeacherName = cls?.teacherName || teacherName;
+
           const report = {
             studentId: user.id,
             studentName: user.displayName || user.name || 'Student',
-            classId: selectedClassId,
-            className: cls?.name || 'Class',
-            teacherId: cls?.teacherId || 'unknown',
+            studentEmail: user.email || '',
+            classId: selectedClassId || 'general',
+            className: cls?.name || 'General Session',
+            teacherId: cls?.teacherId || user.teacherId || 'unknown',
+            teacherName: finalTeacherName,
             status, score, observations: msg,
             timestamp: serverTimestamp()
           };
           await addDoc(collection(db, 'reports'), report);
-          if (score < 50) await addDoc(collection(db, 'alerts'), report);
-          setLastReportTime(new Date().toLocaleTimeString());
+          if (score < 50 && (!lastReportTime || now - new Date(lastReportTime).getTime() > 15000)) {
+             await addDoc(collection(db, 'alerts'), report);
+          }
+          setLastReportTime(new Date().toISOString());
+        } else if (!selectedClassId && user.teacherId && (statusChanged || intervalPassed)) {
+          // Direct sync if student has a teacher but no specific class feed selected
+          const report = {
+            studentId: user.id,
+            studentName: user.displayName || user.name || 'Student',
+            classId: 'general',
+            className: 'General Session',
+            teacherId: user.teacherId,
+            teacherName: teacherName,
+            status, score, observations: msg,
+            timestamp: serverTimestamp()
+          };
+          await addDoc(collection(db, 'reports'), report);
+          if (score < 50 && (!lastReportTime || now - new Date(lastReportTime).getTime() > 15000)) {
+             await addDoc(collection(db, 'alerts'), report);
+          }
+          setLastReportTime(new Date().toISOString());
         }
       }
     } catch (err) {
-      setDebugLog("AI Logic Lag.");
+      console.error("Analysis error:", err);
+      setDebugLog(`AI ERROR: ${err.message}`);
     } finally {
-      setAnalyzing(false);
       isAnalyzingRef.current = false;
       if (autoAnalyze && cameraActive) {
-        timerRef.current = setTimeout(runAnalysis, ANALYSIS_INTERVAL);
+        if (document.visibilityState === 'visible') {
+          requestAnimationFrame(runAnalysis);
+        } else {
+          // Tab is in background - use persistent timer instead of RAF
+          timerRef.current = setTimeout(runAnalysis, 2000);
+        }
       }
     }
-  }, [user, cameraActive, selectedClassId, enrolledClasses, autoAnalyze, brightnessBoost]);
+  }, [user, cameraActive, selectedClassId, enrolledClasses, autoAnalyze, brightnessBoost, lastReportTime]);
 
   useEffect(() => {
     if (autoAnalyze && cameraActive) {
+      requestWakeLock();
       runAnalysis();
     } else {
+      releaseWakeLock();
       if (timerRef.current) clearTimeout(timerRef.current);
     }
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && autoAnalyze && cameraActive) {
+        requestWakeLock();
+        runAnalysis();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      releaseWakeLock();
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [autoAnalyze, cameraActive, runAnalysis]);
 
   if (!user) return null;
@@ -326,24 +429,39 @@ function MobileCameraMonitor({
 
         {/* Active Analysis Overlay */}
         {analysisData && cameraActive && faceDetected && (
-          <div className={`absolute top-4 left-4 right-4 rounded-2xl px-4 py-3 text-xs font-black text-white shadow-2xl border border-white/15 backdrop-blur-xl animate-slide-up flex items-center gap-2.5 ${
-            analysisData.status === 'sleepy' ? 'bg-red-600/90' :
-            analysisData.status === 'distracted' ? 'bg-orange-600/90' : 'bg-green-600/90'
-          }`}>
-            <Activity className="w-4 h-4 animate-pulse" />
-            <span className="uppercase font-extrabold tracking-wider">{analysisData.status}</span>: {analysisData.observations}
+          <div className="absolute bottom-4 left-4 right-4 pointer-events-none z-10">
+            <div className={`rounded-2xl px-4 py-3.5 text-xs font-black text-white shadow-2xl border border-white/15 backdrop-blur-xl animate-slide-up flex items-center gap-2.5 ${
+              analysisData.status === 'sleepy' ? 'bg-red-600/90' :
+              analysisData.status === 'distracted' ? 'bg-orange-600/90' : 'bg-green-600/90'
+            }`}>
+              <Activity className="w-4 h-4 animate-pulse shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="uppercase font-extrabold tracking-wider leading-none text-[10px] opacity-75">Behavior State</p>
+                <p className="font-bold text-[11px] truncate mt-0.5">{analysisData.observations}</p>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Status Badges Overlay */}
+        {/* Floating Sync Badge - Matching Android Native */}
         {cameraActive && (
-          <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
-            <Badge className={`px-3 py-1.5 text-[9px] font-black rounded-full shadow-lg ${engineStatus === 'AI READY' ? 'bg-green-600' : 'bg-primary'}`}>
-              {engineStatus}
-            </Badge>
-            <Badge variant={faceDetected ? "default" : "destructive"} className="px-3 py-1.5 text-[9px] font-black rounded-full shadow-lg">
-              {faceDetected ? "DETECTION ONLINE" : "NO FACE DETECTED"}
-            </Badge>
+          <div className="absolute top-4 right-4 z-10 pointer-events-none">
+            <div className={`px-4 py-1.5 rounded-xl shadow-lg flex items-center gap-2 border border-white/10 backdrop-blur-md ${
+              faceDetected ? 'bg-green-600/90' : 'bg-red-600/90'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full bg-white ${faceDetected ? 'animate-pulse' : ''}`} />
+              <span className="text-[10px] font-black text-white uppercase tracking-wider">
+                {faceDetected ? "FACE SYNCED" : "NO FACE"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {wakeLock && (
+          <div className="absolute top-4 left-4 z-10 pointer-events-none">
+             <div className="bg-amber-500/90 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 shadow-lg">
+                <span className="text-[8px] font-black text-white uppercase tracking-tighter">BG-Active</span>
+             </div>
           </div>
         )}
       </div>
@@ -408,16 +526,24 @@ function MobileCameraMonitor({
 
       {/* Large Attention Score Cards (Mobile Native Look) */}
       <div className="grid grid-cols-2 gap-3 shrink-0">
-        <div className={`p-4 rounded-[24px] border transition-all flex flex-col justify-between h-20 ${
-          analysisData?.status === 'attentive' ? 'bg-green-500/10 border-green-500/20' : 'bg-card border-border'
-        }`}>
-          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Attention</span>
-          <div className="flex items-baseline justify-between mt-1">
-            <span className={`text-2xl font-black ${analysisData?.status === 'attentive' ? 'text-green-500' : 'text-foreground'}`}>
-              {analysisData?.status === 'attentive' ? '100%' : analysisData ? '0%' : '—'}
-            </span>
-            <span className="text-[9px] font-bold text-muted-foreground">Focus</span>
-          </div>
+        {/* Native Style Gauge Circular Progress simulation */}
+        <div className="col-span-2 rounded-[28px] bg-card border border-border p-5 shadow-sm flex items-center justify-between">
+           <div className="flex flex-col gap-1">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Focus Level</p>
+              <h3 className={`text-3xl font-black ${analysisData?.status === 'attentive' ? 'text-green-500' : 'text-foreground'}`}>
+                {analysisData?.status === 'attentive' ? '100%' : analysisData ? '0%' : '—'}
+              </h3>
+           </div>
+           <div className="relative w-16 h-16 flex items-center justify-center">
+              <svg className="w-full h-full -rotate-90">
+                 <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="6" className="text-secondary/50" />
+                 <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" strokeWidth="6" strokeDasharray="176"
+                    strokeDashoffset={176 - (176 * (analysisData?.status === 'attentive' ? 100 : 0)) / 100}
+                    className={`transition-all duration-700 ${analysisData?.status === 'attentive' ? 'text-green-500' : 'text-red-500'}`}
+                 />
+              </svg>
+              <Activity className={`absolute w-5 h-5 ${analysisData?.status === 'attentive' ? 'text-green-500 animate-pulse' : 'text-muted-foreground'}`} />
+           </div>
         </div>
 
         <div className={`p-4 rounded-[24px] border transition-all flex flex-col justify-between h-20 ${
@@ -427,13 +553,18 @@ function MobileCameraMonitor({
           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Alert State</span>
           <div className="flex items-baseline justify-between mt-1">
             <span className={`text-sm font-black uppercase tracking-wide ${
-              analysisData?.status === 'sleepy' ? 'text-red-500' :
+              analysisData?.status === 'sleepy' ? 'text-red-500 animate-pulse' :
               analysisData?.status === 'distracted' ? 'text-orange-500' : 'text-muted-foreground'
             }`}>
-              {analysisData?.status || 'No Session'}
+              {analysisData?.status || 'Standby'}
             </span>
             <span className="text-[9px] font-bold text-muted-foreground">Status</span>
           </div>
+        </div>
+
+        <div className="p-4 rounded-[24px] border border-border bg-zinc-900 flex flex-col justify-between h-20 shadow-inner">
+          <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Engine Log</span>
+          <p className="text-[10px] font-mono text-white/60 truncate italic leading-tight mt-1">{debugLog}</p>
         </div>
       </div>
 
@@ -504,9 +635,14 @@ function DesktopCameraMonitor({
            <Badge className={`px-4 py-1.5 text-xs font-black rounded-full shadow-lg ${engineStatus === 'AI READY' ? 'bg-green-600' : 'bg-primary'}`}>
              {engineStatus}
            </Badge>
-           <Badge variant={faceDetected ? "default" : "destructive"} className="px-4 py-1.5 text-xs font-black rounded-full shadow-lg">
+            <Badge variant={faceDetected ? "default" : "destructive"} className="px-4 py-1.5 text-xs font-black rounded-full shadow-lg text-white">
              {faceDetected ? "DETECTION ACTIVE" : "NO FACE"}
            </Badge>
+           {wakeLock && (
+             <Badge className="bg-amber-500 text-white px-3 py-1 text-[10px] font-black rounded-full shadow-md animate-pulse">
+               STAY-ALIVE ON
+             </Badge>
+           )}
         </div>
       </div>
 
@@ -614,7 +750,7 @@ function DesktopCameraMonitor({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-green-500">{analysisData?.status === 'attentive' ? 1 : 0}</div>
+              <div className="text-3xl font-black text-green-500">{analysisData?.status?.toLowerCase() === 'attentive' ? 1 : 0}</div>
             </CardContent>
           </Card>
           <Card className="bg-card border-none shadow-lg rounded-[28px] p-2 border-l-4 border-orange-500">
@@ -624,7 +760,7 @@ function DesktopCameraMonitor({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-orange-500">{analysisData?.status === 'distracted' ? 1 : 0}</div>
+              <div className="text-3xl font-black text-orange-500">{analysisData?.status?.toLowerCase() === 'distracted' ? 1 : 0}</div>
             </CardContent>
           </Card>
           <Card className="bg-card border-none shadow-lg rounded-[28px] p-2 border-l-4 border-red-600">
@@ -634,7 +770,7 @@ function DesktopCameraMonitor({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-red-500">{analysisData?.status === 'sleepy' ? 1 : 0}</div>
+              <div className="text-3xl font-black text-red-500">{analysisData?.status?.toLowerCase() === 'sleepy' ? 1 : 0}</div>
             </CardContent>
           </Card>
       </div>

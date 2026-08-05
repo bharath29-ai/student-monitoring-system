@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, query, collection, where, onSnapshot } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,8 +25,19 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [teachers, setTeachers] = useState([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Fetch approved teachers for students to select
+    const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setTeachers(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
+    });
+    return () => unsub();
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -35,6 +46,15 @@ export default function Signup() {
       toast({
         title: "Error",
         description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (role === 'student' && !selectedTeacherId) {
+      toast({
+        title: "Error",
+        description: "Please select a teacher.",
         variant: "destructive",
       });
       return;
@@ -74,6 +94,7 @@ export default function Signup() {
         name: name,
         email: email,
         role: role,
+        teacherId: role === 'student' ? selectedTeacherId : null,
         status: 'approved',
         createdAt: new Date().toISOString()
       });
@@ -107,7 +128,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -118,11 +139,11 @@ export default function Signup() {
           <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-4">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Create Account</h1>
-          <p className="text-slate-500 text-sm mt-1">Join the smart classroom system</p>
+          <h1 className="text-2xl font-bold text-foreground">Create Account</h1>
+          <p className="text-muted-foreground text-sm mt-1">Join the smart classroom system</p>
         </div>
 
-        <Card className="border-none shadow-xl">
+        <Card className="border-border shadow-xl">
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
             <CardDescription>
@@ -167,6 +188,23 @@ export default function Signup() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {role === 'student' && (
+                <div className="space-y-2 animate-slide-up">
+                  <Label htmlFor="teacher">Select Teacher</Label>
+                  <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId} disabled={isLoading}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose your instructor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teachers.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                      {teachers.length === 0 && <SelectItem value="none" disabled>No teachers available</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input

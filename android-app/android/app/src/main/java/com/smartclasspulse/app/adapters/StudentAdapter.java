@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,10 +18,24 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.ViewHold
 
     private List<StudentItem> students;
     private List<StudentItem> studentsFiltered;
+    private OnStudentActionListener listener;
+    private boolean isAdmin = false;
+
+    public interface OnStudentActionListener {
+        void onDelete(String studentId);
+    }
 
     public StudentAdapter(List<StudentItem> students) {
         this.students = students;
         this.studentsFiltered = students;
+    }
+
+    public void setListener(OnStudentActionListener listener) {
+        this.listener = listener;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.isAdmin = admin;
     }
 
     @NonNull
@@ -43,6 +58,13 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.ViewHold
         else if ("sleepy".equalsIgnoreCase(item.getStatus())) color = 0xFFF44336; // Red
         
         holder.statusText.setTextColor(color);
+
+        holder.deleteBtn.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
+        holder.deleteBtn.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDelete(item.getStudentId());
+            }
+        });
     }
 
     @Override
@@ -83,12 +105,14 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.ViewHold
 
     class ViewHolder extends RecyclerView.ViewHolder {
         TextView nameText, statusText, scoreText;
+        ImageButton deleteBtn;
 
         ViewHolder(View view) {
             super(view);
             nameText = view.findViewById(R.id.studentName);
             statusText = view.findViewById(R.id.studentStatus);
             scoreText = view.findViewById(R.id.studentScore);
+            deleteBtn = view.findViewById(R.id.deleteStudentBtn);
         }
     }
 }

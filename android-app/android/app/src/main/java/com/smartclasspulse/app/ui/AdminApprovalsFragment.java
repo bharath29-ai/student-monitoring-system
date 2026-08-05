@@ -35,7 +35,15 @@ public class AdminApprovalsFragment extends Fragment {
         
         db = FirebaseFirestore.getInstance();
         adapter = new ApprovalAdapter(pendingUsers, (userId, status) -> {
-            db.collection("users").document(userId).update("status", status);
+            db.collection("users").document(userId)
+                    .update("status", status)
+                    .addOnSuccessListener(aVoid -> {
+                        android.widget.Toast.makeText(getContext(), "User " + status, android.widget.Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        android.widget.Toast.makeText(getContext(), "Error: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                        android.util.Log.e("AdminApprovals", "Update failed", e);
+                    });
         });
         recyclerView.setAdapter(adapter);
         
@@ -50,10 +58,12 @@ public class AdminApprovalsFragment extends Fragment {
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
                     pendingUsers.clear();
-                    pendingUsers.addAll(value.toObjects(UserItem.class));
-                    // Map document ID to model
-                    for (int i = 0; i < value.size(); i++) {
-                        pendingUsers.get(i).setId(value.getDocuments().get(i).getId());
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : value.getDocuments()) {
+                        UserItem item = doc.toObject(UserItem.class);
+                        if (item != null) {
+                            item.setId(doc.getId());
+                            pendingUsers.add(item);
+                        }
                     }
                     adapter.notifyDataSetChanged();
                 });

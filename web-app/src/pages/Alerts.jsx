@@ -1,162 +1,155 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCheck, Trash2, ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Bell, CheckCheck, Trash2, Calendar, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AlertItem from '@/components/alerts/AlertItem';
-import useClassroomData from '@/hooks/useClassroomData';
-import { useSnapshots } from '@/lib/SnapshotContext';
-
-const studentNames = [
-  'Rahul', 'Priya', 'Amit', 'Sneha', 'Vikram', 'Ananya', 'Rohan', 
-  'Kavita', 'Arjun', 'Meera', 'Suresh', 'Divya', 'Kiran', 'Neha'
-];
+import { db } from '@/lib/firebase';
+import { collection, query, where, onSnapshot, orderBy, limit, deleteDoc, doc, writeBatch, getDocs } from 'firebase/firestore';
+import { useAuth } from '@/lib/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Alerts() {
+  const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [filter, setFilter] = useState('all');
-  const { data } = useClassroomData(2000);
-  const prevDataRef = useRef(null);
-  const { snapshots, clearSnapshots } = useSnapshots();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Generate alerts based on classroom data changes
   useEffect(() => {
-    if (!data) return;
+    if (!user?.id) return;
 
-    const prev = prevDataRef.current;
-    const newAlerts = [];
+    // Fetch real alerts from Firestore for this teacher
+    const q = query(
+      collection(db, 'alerts'),
+      where('teacherId', '==', user.id),
+      orderBy('timestamp', 'desc'),
+      limit(50)
+    );
 
-    if (data.distracted > 3) {
-      const name = studentNames[Math.floor(Math.random() * studentNames.length)];
-      newAlerts.push({
-        id: Date.now() + Math.random(),
-        message: `⚠ Alert: ${name} is distracted`,
-        type: 'distracted',
-        severity: data.distracted > 5 ? 'high' : 'medium',
-        student_name: name,
-        is_read: false,
-        created_date: new Date().toISOString(),
-      });
+    const unsub = onSnapshot(q, (snapshot) => {
+      setAlerts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Alerts listener error:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsub();
+  }, [user?.id]);
+
+  const filteredAlerts = useMemo(() => {
+    if (filter === 'all') return alerts;
+    return alerts.filter(a => a.status?.toLowerCase() === filter.toLowerCase());
+  }, [alerts, filter]);
+
+  const clearAll = async () => {
+    if (!user?.id || alerts.length === 0) return;
+    try {
+      const q = query(collection(db, 'alerts'), where('teacherId', '==', user.id));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    } catch (err) {
+      console.error("Clear alerts error:", err);
     }
-
-    if (data.sleepy > 1 && (!prev || data.sleepy > prev.sleepy)) {
-      const name = studentNames[Math.floor(Math.random() * studentNames.length)];
-      newAlerts.push({
-        id: Date.now() + Math.random() + 1,
-        message: `😴 ${name} appears to be sleepy`,
-        type: 'sleepy',
-        severity: 'medium',
-        student_name: name,
-        is_read: false,
-        created_date: new Date().toISOString(),
-      });
-    }
-
-    if (data.attention_percentage < 60) {
-      newAlerts.push({
-        id: Date.now() + Math.random() + 2,
-        message: `🔴 Classroom attention dropped to ${data.attention_percentage}%`,
-        type: 'low_attention',
-        severity: data.attention_percentage < 40 ? 'critical' : 'high',
-        is_read: false,
-        created_date: new Date().toISOString(),
-      });
-    }
-
-    if (newAlerts.length > 0) {
-      setAlerts(prev => [...newAlerts, ...prev].slice(0, 50));
-    }
-
-    prevDataRef.current = data;
-  }, [data]);
-
-  const filteredAlerts = filter === 'all' 
-    ? alerts 
-    : alerts.filter(a => a.type === filter);
-
-  const unreadCount = alerts.filter(a => !a.is_read).length;
-
-  const markAllRead = () => {
-    setAlerts(prev => prev.map(a => ({ ...a, is_read: true })));
   };
 
-  const clearAll = () => {
-    setAlerts([]);
-  };
+  if (!user) return null;
 
   return (
-    <div className="space-y-6 animate-slide-up">
+    <div className="space-y-6 animate-slide-up pb-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-extrabold text-foreground">Alerts</h1>
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="px-2.5">{unreadCount} new</Badge>
-          )}
+        <div>
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
+            Alerts <ShieldAlert className="w-6 h-6 text-destructive" />
+          </h1>
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-70">
+            Critical Behavioral Notifications
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={markAllRead} className="gap-2 text-xs">
-            <CheckCheck className="w-3.5 h-3.5" /> Mark all read
-          </Button>
-          <Button variant="outline" size="sm" onClick={clearAll} className="gap-2 text-xs text-destructive">
-            <Trash2 className="w-3.5 h-3.5" /> Clear
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearAll}
+            className="h-10 rounded-full font-bold px-5 text-destructive border-destructive/20 hover:bg-destructive/10 active:scale-95 transition-all"
+            disabled={alerts.length === 0}
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-2" /> Clear All
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="all" onValueChange={setFilter}>
-        <TabsList className="bg-secondary">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="distracted">Distracted</TabsTrigger>
-          <TabsTrigger value="sleepy">Sleepy</TabsTrigger>
-          <TabsTrigger value="low_attention">Low Attention</TabsTrigger>
+      <Tabs defaultValue="all" onValueChange={setFilter} className="w-full">
+        <TabsList className="bg-secondary/50 p-1 h-12 rounded-2xl border border-border/40">
+          <TabsTrigger value="all" className="rounded-xl px-6 font-bold text-xs uppercase tracking-wider">All ({alerts.length})</TabsTrigger>
+          <TabsTrigger value="sleepy" className="rounded-xl px-6 font-bold text-xs uppercase tracking-wider">Sleepy</TabsTrigger>
+          <TabsTrigger value="distracted" className="rounded-xl px-6 font-bold text-xs uppercase tracking-wider">Distracted</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Captured Snapshots from Camera */}
-      {snapshots.length > 0 && (
-        <div className="rounded-2xl bg-card border border-border p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-sm text-foreground">Classroom Snapshots</span>
-              <Badge variant="outline" className="text-[10px]">{snapshots.length}</Badge>
-            </div>
-            <button onClick={clearSnapshots} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
-              Clear
-            </button>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {snapshots.map(snap => (
-              <div key={snap.id} className="rounded-xl overflow-hidden border border-border bg-black relative">
-                <img src={snap.snapshot} alt="snapshot" className="w-full aspect-video object-cover" />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1.5">
-                  <p className="text-[10px] font-semibold text-white truncate">{snap.label}</p>
-                  <p className="text-[9px] text-white/60">{snap.time}</p>
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <div className="w-8 h-8 border-3 border-slate-200 border-t-primary rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {filteredAlerts.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-secondary/10 rounded-[32px] border-2 border-dashed border-border/60"
+              >
+                <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center mb-4 shadow-sm">
+                  <Bell className="w-8 h-8 opacity-20" />
                 </div>
-                <div className={`absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded text-white ${
-                  snap.attention >= 70 ? 'bg-green-600' : snap.attention >= 40 ? 'bg-yellow-600' : 'bg-red-600'
-                }`}>
-                  {snap.attention}%
-                </div>
-              </div>
-            ))}
-          </div>
+                <p className="text-sm font-black uppercase tracking-widest opacity-60">No Active Alerts</p>
+                <p className="text-[10px] mt-2 text-center max-w-[200px] leading-relaxed font-bold opacity-50 uppercase">
+                  Alerts will trigger when student attention drops below 50%
+                </p>
+              </motion.div>
+            ) : (
+              filteredAlerts.map((alert, i) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: i * 0.05 }}
+                  className={`p-4 rounded-3xl border flex items-center justify-between gap-4 transition-all shadow-sm ${
+                    alert.status?.toLowerCase() === 'sleepy'
+                      ? 'bg-red-500/5 border-red-500/20'
+                      : 'bg-orange-500/5 border-orange-500/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-md ${
+                      alert.status?.toLowerCase() === 'sleepy' ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'
+                    }`}>
+                      <Bell className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-foreground">
+                        {alert.studentName} is <span className="uppercase">{alert.status}</span>
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1.5 mt-1">
+                        <Calendar className="w-3 h-3" />
+                        {alert.timestamp?.toDate ? alert.timestamp.toDate().toLocaleString() : 'Just now'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="outline" className="rounded-full font-black text-[9px] uppercase bg-background px-3">
+                      Score: {alert.score}%
+                    </Badge>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
         </div>
       )}
-
-      <div className="space-y-3">
-        {filteredAlerts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <Bell className="w-12 h-12 mb-4 opacity-30" />
-            <p className="text-sm font-medium">No alerts yet</p>
-            <p className="text-xs mt-1">Alerts will appear when attention issues are detected</p>
-          </div>
-        ) : (
-          filteredAlerts.map((alert, i) => (
-            <AlertItem key={alert.id} alert={alert} index={i} />
-          ))
-        )}
-      </div>
     </div>
   );
 }

@@ -21,7 +21,9 @@ import com.smartclasspulse.app.adapters.StudentAdapter;
 import com.smartclasspulse.app.models.StudentItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class StudentsFragment extends Fragment {
 
@@ -45,6 +47,26 @@ public class StudentsFragment extends Fragment {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new StudentAdapter(studentList);
+        
+        com.smartclasspulse.app.UserSession session = new com.smartclasspulse.app.UserSession(getContext());
+        adapter.setAdmin("admin".equals(session.getUserRole()));
+        adapter.setListener(studentId -> {
+            new android.app.AlertDialog.Builder(getContext())
+                .setTitle("Delete Student")
+                .setMessage("Are you sure you want to delete this student?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    db.collection("users").document(studentId).delete()
+                        .addOnSuccessListener(aVoid -> {
+                            android.widget.Toast.makeText(getContext(), "Student deleted", android.widget.Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            android.widget.Toast.makeText(getContext(), "Error: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                        });
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        });
+
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
@@ -56,15 +78,72 @@ public class StudentsFragment extends Fragment {
     }
 
     private void loadStudents() {
-        db.collection("reports")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null || value == null) return;
-                    
-                    // Logic to aggregate latest status per student
-                    // and update counts + list
-                    updateStudentList(value.toObjects(StudentItem.class));
+        com.smartclasspulse.app.UserSession session = new com.smartclasspulse.app.UserSession(getContext());
+        String teacherId = session.getUserId();
+        String role = session.getUserRole();
+
+        // 1. Fetch real students for this teacher
+        com.google.firebase.firestore.Query userQuery;
+        if ("teacher".equals(role)) {
+            userQuery = db.collection("users")
+                    .whereEqualTo("role", "student")
+                    .whereEqualTo("teacherId", teacherId);
+        } else {
+            userQuery = db.collection("users")
+                    .whereEqualTo("role", "student");
+        }
+
+        userQuery.addSnapshotListener((userSnap, userErr) -> {
+            if (userErr != null || userSnap == null) return;
+            
+            List<StudentItem> students = new ArrayList<>();
+            for (com.google.firebase.firestore.DocumentSnapshot doc : userSnap) {
+                StudentItem item = doc.toObject(StudentItem.class);
+                if (item != null) {
+                    item.setStudentId(doc.getId());
+                    item.setStudentName(doc.getString("name"));
+                    students.add(item);
+                }
+            }
+
+            // 2. Fetch latest status for these students from reports
+            com.google.firebase.firestore.Query reportQuery = db.collection("reports");
+            if ("teacher".equals(role)) {
+                reportQuery = reportQuery.whereEqualTo("teacherId", teacherId);
+            }
+            
+            reportQuery.orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(100)
+                .addSnapshotListener((reportSnap, reportErr) -> {
+                    if (reportErr != null || reportSnap == null) {
+                        updateStudentList(students);
+                        return;
+                    }
+
+                    Map<String, String> latestStatus = new HashMap<>();
+                    Map<String, Integer> latestScore = new HashMap<>();
+                    for (com.google.firebase.firestore.DocumentSnapshot reportDoc : reportSnap) {
+                        String sId = reportDoc.getString("studentId");
+                        if (sId != null && !latestStatus.containsKey(sId)) {
+                            latestStatus.put(sId, reportDoc.getString("status"));
+                            latestScore.put(sId, reportDoc.getLong("score") != null ? reportDoc.getLong("score").intValue() : 0);
+                        }
+                    }
+
+                    for (StudentItem student : students) {
+                        String status = latestStatus.get(student.getStudentId());
+                        if (status != null) {
+                            student.setStatus(status);
+                            Integer score = latestScore.get(student.getStudentId());
+                            student.setScore(score != null ? score : 0);
+                        } else {
+                            student.setStatus("absent");
+                            student.setScore(0);
+                        }
+                    }
+                    updateStudentList(students);
                 });
+        });
     }
 
     private void updateStudentList(List<StudentItem> reports) {

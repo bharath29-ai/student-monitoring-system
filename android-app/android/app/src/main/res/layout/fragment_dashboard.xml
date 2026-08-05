@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:background="#F5F5F5"
+            android:background="?attr/colorSurface"
             android:padding="16dp"
             android:layout_marginBottom="16dp">
 
@@ -48,7 +48,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Teacher/Admin Stats Grid -->
         <GridLayout
             android:id="@+id/statsGrid"
             android:layout_width="match_parent"
@@ -69,7 +68,7 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total Students" android:textSize="10sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/totalStudentsText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="#2196F3" />
+                    <TextView android:id="@+id/totalStudentsText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="@color/colorPrimary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -85,7 +84,7 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Attentive" android:textSize="10sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/attentiveText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="#4CAF50" />
+                    <TextView android:id="@+id/attentiveText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="@color/attentive" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -101,12 +100,13 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Distracted" android:textSize="10sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/distractedText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="#FF9800" />
+                    <TextView android:id="@+id/distractedText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="@color/distracted" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_margin="4dp"
                 app:cardCornerRadius="16dp">
@@ -116,13 +116,12 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sleepy" android:textSize="10sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/sleepyText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="#F44336" />
+                    <TextView android:id="@+id/sleepyText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--" android:textSize="24sp" android:textColor="@color/sleepy" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </GridLayout>
 
-        <!-- Student Classes View -->
         <LinearLayout
             android:id="@+id/studentClassesView"
             android:layout_width="match_parent"
@@ -145,7 +144,6 @@
                 android:layout_marginTop="8dp" />
         </LinearLayout>
 
-        <!-- Available Classes View -->
         <LinearLayout
             android:id="@+id/availableClassesView"
             android:layout_width="match_parent"

@@ -15,16 +15,16 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:title="Admin Panel"
-            app:titleTextColor="#FFFFFF" />
+            app:titleTextColor="?attr/colorOnPrimary" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/adminTabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
-            app:tabTextColor="#CCCCCC"
-            app:tabSelectedTextColor="#FFFFFF"
-            app:tabIndicatorColor="#FFFFFF">
+            app:tabTextColor="?attr/colorOnPrimary"
+            app:tabSelectedTextColor="?attr/colorOnPrimary"
+            app:tabIndicatorColor="?attr/colorOnPrimary">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"

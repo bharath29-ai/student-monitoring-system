@@ -10,8 +10,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.smartclasspulse.app.R;
 import com.smartclasspulse.app.UserSession;
 
@@ -19,6 +21,7 @@ public class ProfileFragment extends Fragment {
 
     private TextView nameText, roleText, idText;
     private Button logoutButton, adminPanelButton;
+    private SwitchMaterial themeSwitch;
     private UserSession session;
 
     @Nullable
@@ -31,12 +34,26 @@ public class ProfileFragment extends Fragment {
         idText = view.findViewById(R.id.profileId);
         logoutButton = view.findViewById(R.id.logoutButton);
         adminPanelButton = view.findViewById(R.id.adminPanelButton);
+        themeSwitch = view.findViewById(R.id.themeSwitch);
         
         session = new UserSession(getContext());
         
         nameText.setText(session.getUserName());
         roleText.setText(session.getUserRole());
         idText.setText("ID: " + session.getUserId());
+
+        themeSwitch.setChecked(session.isDarkMode());
+        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            session.setDarkMode(isChecked);
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+            if (getActivity() != null) {
+                getActivity().recreate();
+            }
+        });
 
         if ("admin".equals(session.getUserRole())) {
             adminPanelButton.setVisibility(View.VISIBLE);
@@ -46,6 +63,7 @@ public class ProfileFragment extends Fragment {
         }
         
         logoutButton.setOnClickListener(v -> {
+            com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
             session.clear();
             startActivity(new Intent(getActivity(), com.smartclasspulse.app.LoginActivity.class));
             getActivity().finish();

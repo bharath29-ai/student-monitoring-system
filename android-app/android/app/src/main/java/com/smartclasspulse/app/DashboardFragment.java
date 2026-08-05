@@ -17,7 +17,9 @@ import com.smartclasspulse.app.models.ClassItem;
 import com.smartclasspulse.app.adapters.ClassAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
 
@@ -91,23 +93,52 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadClassroomStats() {
-        // In a real app, this would be a specialized aggregation query
+        String teacherId = session.getUserId();
+        
+        // 1. Get total assigned students
+        db.collection("users")
+                .whereEqualTo("role", "student")
+                .whereEqualTo("teacherId", teacherId)
+                .addSnapshotListener((userSnap, userErr) -> {
+                    if (userErr != null || userSnap == null) return;
+                    int totalAssigned = userSnap.size();
+                    totalStudentsText.setText(String.valueOf(totalAssigned));
+                });
+
+        // 2. Get active statuses from reports (latest per student)
         db.collection("reports")
+                .whereEqualTo("teacherId", teacherId)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(100)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
                     
-                    int total = 0, attentive = 0, distracted = 0, sleepy = 0;
-                    // Logic to count latest status
-                    // For demo, just counting all reports in last hour or similar
-                    total = value.size();
+                    int attentive = 0, distracted = 0, sleepy = 0;
+                    Map<String, String> studentLatestStatus = new HashMap<>();
+                    
+                    long nowMs = System.currentTimeMillis();
+                    long STALE_THRESHOLD = 30000; // 30 seconds
+
                     for (com.google.firebase.firestore.QueryDocumentSnapshot doc : value) {
+                        String sId = doc.getString("studentId");
                         String status = doc.getString("status");
+                        com.google.firebase.Timestamp timestamp = doc.getTimestamp("timestamp");
+                        
+                        if (sId != null && status != null && timestamp != null) {
+                            if (nowMs - timestamp.toDate().getTime() < STALE_THRESHOLD) {
+                                if (!studentLatestStatus.containsKey(sId)) {
+                                    studentLatestStatus.put(sId, status);
+                                }
+                            }
+                        }
+                    }
+                    
+                    for (String status : studentLatestStatus.values()) {
                         if ("attentive".equalsIgnoreCase(status)) attentive++;
                         else if ("distracted".equalsIgnoreCase(status)) distracted++;
                         else if ("sleepy".equalsIgnoreCase(status)) sleepy++;
                     }
                     
-                    totalStudentsText.setText(String.valueOf(total));
                     attentiveText.setText(String.valueOf(attentive));
                     distractedText.setText(String.valueOf(distracted));
                     sleepyText.setText(String.valueOf(sleepy));
@@ -119,11 +150,13 @@ public class DashboardFragment extends Fragment {
 
         db.collection("classes")
                 .whereArrayContains("students", session.getUserId())
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addSnapshotListener((queryDocumentSnapshots, error) -> {
+                    if (error != null || queryDocumentSnapshots == null) return;
                     List<ClassItem> classes = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        classes.add(doc.toObject(ClassItem.class));
+                        ClassItem item = doc.toObject(ClassItem.class);
+                        item.setId(doc.getId());
+                        classes.add(item);
                     }
                     recyclerView.setAdapter(new ClassAdapter(classes));
                 });

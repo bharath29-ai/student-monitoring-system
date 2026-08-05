@@ -8,6 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.smartclasspulse.app.R;
 import com.smartclasspulse.app.models.ClassItem;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.smartclasspulse.app.UserSession;
 import java.util.List;
 
 public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ViewHolder> {
@@ -31,7 +34,37 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ViewHolder> 
         holder.teacherText.setText("Teacher: " + item.getTeacherName());
         
         holder.itemView.setOnClickListener(v -> {
-            android.widget.Toast.makeText(v.getContext(), "Selected: " + item.getName(), android.widget.Toast.LENGTH_SHORT).show();
+            UserSession session = new UserSession(v.getContext());
+            String studentId = session.getUserId();
+            
+            if (studentId == null) return;
+            if (item.getId() == null) {
+                android.widget.Toast.makeText(v.getContext(), "Error: Class ID is missing", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // If already enrolled, don't re-enroll
+            if (item.getStudents() != null && item.getStudents().contains(studentId)) {
+                android.widget.Toast.makeText(v.getContext(), "You are already enrolled in " + item.getName(), android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            
+            // 1. Add student to the class list
+            db.collection("classes").document(item.getId())
+                    .update("students", FieldValue.arrayUnion(studentId))
+                    .addOnSuccessListener(aVoid -> {
+                        // 2. Link student to this teacher in their profile
+                        db.collection("users").document(studentId)
+                                .update("teacherId", item.getTeacherId())
+                                .addOnSuccessListener(aVoid2 -> {
+                                    android.widget.Toast.makeText(v.getContext(), "Enrolled in " + item.getName(), android.widget.Toast.LENGTH_SHORT).show();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        android.widget.Toast.makeText(v.getContext(), "Enrollment failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                    });
         });
     }
 

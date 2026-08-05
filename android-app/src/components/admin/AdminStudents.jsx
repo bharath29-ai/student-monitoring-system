@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { db } from '@/lib/firebase';
 import { collection, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/use-toast';
 
 const statusColors = {
   attentive: 'bg-green-500/10 text-green-600 border-green-500/20',
@@ -22,6 +23,7 @@ export default function AdminStudents() {
   const [selected, setSelected] = useState(null);
   const [students, setStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const q = query(collection(db, 'users'), where('role', '==', 'student'));
@@ -33,7 +35,21 @@ export default function AdminStudents() {
   }, []);
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteDoc(doc(db, 'students', id)),
+    mutationFn: (id) => deleteDoc(doc(db, 'users', id)),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Student deleted successfully",
+      });
+    },
+    onError: (error) => {
+      console.error("Delete error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete student: " + error.message,
+        variant: "destructive",
+      });
+    }
   });
 
   const filtered = students.filter(s =>

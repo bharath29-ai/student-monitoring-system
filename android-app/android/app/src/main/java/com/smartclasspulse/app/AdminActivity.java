@@ -3,6 +3,7 @@ package com.smartclasspulse.app;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
@@ -12,6 +13,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.smartclasspulse.app.ui.AdminApprovalsFragment;
 import com.smartclasspulse.app.ui.AdminClassesFragment;
+import com.smartclasspulse.app.ui.AdminTeachersFragment;
 import com.smartclasspulse.app.ui.StudentsFragment;
 
 public class AdminActivity extends AppCompatActivity {
@@ -19,6 +21,14 @@ public class AdminActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        UserSession session = new UserSession(this);
+        if (session.isDarkMode()) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
         setContentView(R.layout.activity_admin);
 
         Toolbar toolbar = findViewById(R.id.adminToolbar);
@@ -34,21 +44,28 @@ public class AdminActivity extends AppCompatActivity {
             @NonNull
             @Override
             public Fragment createFragment(int position) {
-                if (position == 1) return new AdminClassesFragment();
-                if (position == 2) return new StudentsFragment();
-                return new AdminApprovalsFragment();
+                switch (position) {
+                    case 0: return new AdminApprovalsFragment();
+                    case 1: return new AdminTeachersFragment();
+                    case 2: return new AdminClassesFragment();
+                    case 3: return new StudentsFragment();
+                    default: return new AdminApprovalsFragment();
+                }
             }
 
             @Override
             public int getItemCount() {
-                return 3;
+                return 4;
             }
         });
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            if (position == 0) tab.setText("Approvals");
-            else if (position == 1) tab.setText("Classes");
-            else tab.setText("Users");
+            switch (position) {
+                case 0: tab.setText("Approvals"); break;
+                case 1: tab.setText("Teachers"); break;
+                case 2: tab.setText("Classes"); break;
+                case 3: tab.setText("Students"); break;
+            }
         }).attach();
     }
 

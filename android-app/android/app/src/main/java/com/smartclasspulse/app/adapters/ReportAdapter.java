@@ -28,14 +28,24 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ReportItem item = reports.get(position);
         holder.nameText.setText(item.getStudentName() != null ? item.getStudentName() : "Student");
-        holder.statusText.setText(item.getStatus());
+        holder.classText.setText(item.getClassName() != null ? item.getClassName() : "General");
+        
+        String status = item.getStatus() != null ? item.getStatus().toUpperCase() : "UNKNOWN";
+        holder.statusText.setText(status);
         holder.scoreText.setText(item.getScore() + "%");
         holder.obsText.setText(item.getObservations());
-        holder.dateText.setText(item.getTimestamp() != null ? item.getTimestamp().toDate().toString() : "");
+        
+        if (item.getTimestamp() != null) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, HH:mm", java.util.Locale.getDefault());
+            holder.dateText.setText(sdf.format(item.getTimestamp().toDate()));
+        } else {
+            holder.dateText.setText("");
+        }
 
-        int color = 0xFF4CAF50;
-        if ("distracted".equalsIgnoreCase(item.getStatus())) color = 0xFFFF9800;
-        else if ("sleepy".equalsIgnoreCase(item.getStatus())) color = 0xFFF44336;
+        int color = 0xFF4CAF50; // Attentive Green
+        if ("SLEEPY".equalsIgnoreCase(status)) color = 0xFFF44336; // Red
+        else if ("DISTRACTED".equalsIgnoreCase(status)) color = 0xFFFF9800; // Orange
+
         holder.statusText.setTextColor(color);
     }
 
@@ -45,10 +55,11 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView nameText, statusText, scoreText, dateText, obsText;
+        TextView nameText, statusText, scoreText, dateText, obsText, classText;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             nameText = itemView.findViewById(R.id.reportStudentName);
+            classText = itemView.findViewById(R.id.reportClassName);
             statusText = itemView.findViewById(R.id.reportStatusText);
             scoreText = itemView.findViewById(R.id.reportScoreText);
             dateText = itemView.findViewById(R.id.reportDateText);

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Surfaces -->
+    <color name="surface">#1A1C1E</color>
+    <color name="background">#111315</color>
+    <color name="onSurface">#E2E2E6</color>
+    <color name="onSurfaceSecondary">#C4C6D0</color>
+    <color name="cardBackground">#24262A</color>
+    <color name="navBackground">#1A1C1E</color>
+    <color name="overlay_background">#CC1A1C1E</color>
+    <color name="progress_track">#33FFFFFF</color>
+    <color name="gauge_background">#B3000000</color>
+    <color name="gauge_text">#FFFFFF</color>
+    <color name="gauge_label">#80FFFFFF</color>
+</resources>

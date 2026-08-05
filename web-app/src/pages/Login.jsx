@@ -88,7 +88,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -99,11 +99,11 @@ export default function Login() {
           <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg mb-4">
             <Brain className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Welcome Back</h1>
-          <p className="text-slate-500 text-sm mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
+          <p className="text-muted-foreground text-sm mt-1">Sign in to your account</p>
         </div>
 
-        <Card className="border-none shadow-xl">
+        <Card className="border-border shadow-xl">
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>

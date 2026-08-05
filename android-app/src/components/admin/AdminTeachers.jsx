@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { db } from '@/lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, where, serverTimestamp } from 'firebase/firestore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/use-toast';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'History', 'Geography', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Other'];
 
@@ -19,6 +20,7 @@ export default function AdminTeachers() {
   const [teachers, setTeachers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [form, setForm] = useState({ name: '', email: '', subject: '', class_name: '', phone: '', join_date: '' });
+  const { toast } = useToast();
 
   useEffect(() => {
     const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
@@ -30,12 +32,30 @@ export default function AdminTeachers() {
   }, []);
 
   const createMutation = useMutation({
-    mutationFn: (data) => addDoc(collection(db, 'teachers'), { ...data, created_date: serverTimestamp() }),
-    onSuccess: () => { setShowAdd(false); resetForm(); },
+    mutationFn: (data) => addDoc(collection(db, 'users'), {
+      ...data,
+      role: 'teacher',
+      status: 'approved',
+      created_date: serverTimestamp()
+    }),
+    onSuccess: () => {
+      setShowAdd(false);
+      resetForm();
+      toast({ title: "Success", description: "Teacher added successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: "Failed to add teacher: " + error.message, variant: "destructive" });
+    }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteDoc(doc(db, 'teachers', id)),
+    mutationFn: (id) => deleteDoc(doc(db, 'users', id)),
+    onSuccess: () => {
+      toast({ title: "Success", description: "Teacher deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: "Failed to delete teacher: " + error.message, variant: "destructive" });
+    }
   });
 
   const resetForm = () => setForm({ name: '', email: '', subject: '', class_name: '', phone: '', join_date: '' });

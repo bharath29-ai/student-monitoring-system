@@ -16,62 +16,51 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().role == role;
     }
 
-    function isApproved() {
-      return isAuthenticated();
+    function isAdmin() {
+      return hasRole('admin');
     }
 
     // Users collection
     match /users/{userId} {
-      // Allow user to read their own profile even if pending
-      // Allow others to read basic info for names/roles
       allow read: if isAuthenticated();
-
-      // Allow signup
-      allow create: if request.auth.uid == userId;
-
-      // Only admins can change roles or status
-      // Users can update their own non-sensitive info (like name)
-      allow update: if hasRole('admin') || (
-        request.auth.uid == userId &&
-        request.resource.data.role == resource.data.role &&
-        request.resource.data.status == resource.data.status
-      );
-
-      allow delete: if hasRole('admin');
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if isAdmin();
     }
 
     // Classes collection
     match /classes/{classId} {
-      allow read: if isApproved();
-      allow create, delete: if hasRole('admin') && isApproved();
-      // Allow students to enroll (updates the students array)
-      allow update: if hasRole('admin') || hasRole('student');
+      allow read: if isAuthenticated();
+      allow create, delete: if isAdmin();
+      allow update: if isAuthenticated();
     }
 
     // Reports collection
     match /reports/{reportId} {
-      allow create: if hasRole('student') && isApproved();
-      allow read: if isApproved() && (
-        hasRole('admin') ||
-        resource.data.studentId == request.auth.uid ||
-        resource.data.teacherId == request.auth.uid
-      );
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated();
+    }
+
+    // Alerts collection
+    match /alerts/{alertId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated();
     }
 
     // Classroom live status and history
     match /classroom/{docId} {
-      allow read: if isApproved();
-      allow write: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (hasRole('admin') || hasRole('teacher'));
     }
 
     match /classroom_history/{docId} {
-      allow read: if isApproved() && (hasRole('admin') || hasRole('teacher'));
-      allow create: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (hasRole('admin') || hasRole('teacher'));
     }
 
-    // Original students collection (fallback for legacy components)
+    // Original students collection (legacy)
     match /students/{studentId} {
-      allow read, write: if isApproved() && (hasRole('admin') || hasRole('teacher'));
+      allow read, write: if isAuthenticated();
     }
   }
 }

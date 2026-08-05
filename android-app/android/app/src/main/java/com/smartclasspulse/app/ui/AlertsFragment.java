@@ -47,14 +47,18 @@ public class AlertsFragment extends Fragment {
         if ("student".equals(session.getUserRole())) {
             query = db.collection("alerts")
                     .whereEqualTo("studentId", session.getUserId());
+        } else if ("teacher".equals(session.getUserRole())) {
+            query = db.collection("alerts")
+                    .whereEqualTo("teacherId", session.getUserId());
         } else {
+            // Admin sees all
             query = db.collection("alerts");
         }
 
         query.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ReportItem> alerts = queryDocumentSnapshots.toObjects(ReportItem.class);
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) return;
+                    List<ReportItem> alerts = value.toObjects(ReportItem.class);
                     recyclerView.setAdapter(new ReportAdapter(alerts));
                 });
     }

@@ -90,13 +90,15 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
   async function logoutCurrentUser() {
     reportGenerator.log('Logging out current user...');
     try {
+      // Short delay to let any animations settle
+      await driver.sleep(1000);
+
       // 1. Check if we are on the Pending Approval screen (has "Sign Out" button)
       const pendingSignOut = await driver.findElements(By.xpath('//button[contains(., "Sign Out")]'));
       if (pendingSignOut.length > 0) {
         await driver.executeScript("arguments[0].click();", pendingSignOut[0]);
         reportGenerator.log('Clicked "Sign Out" on pending screen.');
-        await driver.wait(until.urlContains('/login'), 15000);
-        await driver.sleep(1000);
+        try { await driver.wait(until.urlContains('/login'), 5000); } catch (e) {}
         return;
       }
 
@@ -105,8 +107,7 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       if (sidebarLogout.length > 0) {
         await driver.executeScript("arguments[0].click();", sidebarLogout[0]);
         reportGenerator.log('Clicked "Logout" on sidebar.');
-        await driver.wait(until.urlContains('/login'), 15000);
-        await driver.sleep(1000);
+        try { await driver.wait(until.urlContains('/login'), 5000); } catch (e) {}
         return;
       }
 
@@ -116,9 +117,10 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       await driver.executeScript('window.localStorage.clear();');
       await driver.executeScript('window.sessionStorage.clear();');
       await driver.get(`${BASE_URL}/login`);
-      await driver.sleep(1000);
     } catch (e) {
       reportGenerator.log(`Logout warning: ${e.message}`, 'WARNING');
+      // Force navigation if all else fails
+      try { await driver.get(`${BASE_URL}/login`); } catch (err) {}
     }
   }
 
@@ -283,24 +285,45 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       const startTime = Date.now();
       try {
         reportGenerator.log('Navigating to Classes management in Admin Panel...');
+
+        // Wait for tabs to be present
+        await driver.wait(until.elementLocated(By.xpath('//button[contains(., "Classes")]')), 10000);
         const classesTab = await driver.findElement(By.xpath('//button[contains(., "Classes")]'));
-        await driver.executeScript("arguments[0].click();", classesTab);
+
+        await driver.executeScript(`
+          const el = arguments[0];
+          const events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
+          events.forEach(type => {
+            const ev = new MouseEvent(type, { bubbles: true, cancelable: true, view: window });
+            el.dispatchEvent(ev);
+          });
+        `, classesTab);
+
+        await driver.sleep(2000); // Wait for tab transition
+
+        // Check if we are on the Classes tab by looking for the header
         await driver.wait(until.elementLocated(By.xpath('//h3[contains(text(), "Create New Class")]')), 15000);
 
         // Fill out form
-        await driver.findElement(By.css('input[placeholder="e.g. Physics 101"]')).sendKeys(CLASS_NAME);
+        const nameInput = await driver.findElement(By.css('input[placeholder="e.g. Physics 101"]'));
+        await nameInput.sendKeys(CLASS_NAME);
 
         // Click Assign Teacher select
+        reportGenerator.log('Opening teacher selection dropdown...');
         const teacherSelect = await driver.findElement(By.css('button[role="combobox"]'));
         await driver.executeScript("arguments[0].click();", teacherSelect);
-        await driver.sleep(500);
+        await driver.sleep(1000);
 
         // Select the pre-seeded teacher: 'testteacher'
-        const teacherItem = await driver.findElement(By.xpath('//div[@role="option"]//span[text()="testteacher"] | //div[@role="option" and contains(., "testteacher")]'));
+        reportGenerator.log('Selecting teacher from dropdown...');
+        const teacherOptionXpath = '//div[@role="option"]//span[contains(text(), "testteacher")] | //div[@role="option" and contains(., "testteacher")]';
+        await driver.wait(until.elementLocated(By.xpath(teacherOptionXpath)), 10000);
+        const teacherItem = await driver.findElement(By.xpath(teacherOptionXpath));
         await driver.executeScript("arguments[0].click();", teacherItem);
         await driver.sleep(500);
 
         // Submit create class
+        reportGenerator.log('Submitting classroom creation...');
         const createBtn = await driver.findElement(By.xpath('//button[contains(., "Create Class")]'));
         await driver.executeScript("arguments[0].click();", createBtn);
 

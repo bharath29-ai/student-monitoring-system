@@ -156,27 +156,54 @@ export default function CameraMonitor() {
         const points = face.keypoints;
         const dist = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 
-        // Precision EAR Logic
+        // Precision EAR Logic (Eyes)
         const leftEAR = (dist(points[160], points[144]) + dist(points[158], points[153])) / (2 * dist(points[33], points[133]));
         const rightEAR = (dist(points[385], points[380]) + dist(points[387], points[373])) / (2 * dist(points[362], points[263]));
         const avgEAR = (leftEAR + rightEAR) / 2;
 
+        // YAW (Left/Right)
         const faceW = dist(points[234], points[454]);
-        const noseOffset = Math.abs(points[1].x - (points[234].x + points[454].x) / 2);
-        const headTurn = noseOffset / faceW;
+        const noseOffset = points[1].x - (points[234].x + points[454].x) / 2;
+        const headYaw = (noseOffset / faceW) * 100; // Normalized estimate
+
+        // PITCH (Up/Down)
+        const upperFace = dist(points[10], points[1]);
+        const lowerFace = dist(points[1], points[152]);
+        const headPitch = (upperFace / lowerFace); // Ratio changes when looking up/down
+
+        // ROLL (Tilt)
+        const eyeDiffY = points[263].y - points[33].y;
+        const eyeDiffX = points[263].x - points[33].x;
+        const headRoll = Math.atan2(eyeDiffY, eyeDiffX) * (180 / Math.PI);
 
         let status = "attentive";
         let score = 100;
         let msg = "Focused & Engaged";
 
-        if (avgEAR < 0.17) {
-          status = "sleepy"; score = 25; msg = "Warning: Student is Sleepy";
-        } else if (headTurn > 0.32) {
-          status = "distracted"; score = 45; msg = "Warning: Looking Away";
+        // SYNCED ALGORITHM WITH ANDROID (ML KIT PARITY)
+        // 1. SLEEPY DETECTION
+        if (avgEAR < 0.16) {
+          status = "Sleepy"; score = 20; msg = "Eyes closed detected";
+        }
+        // 2. DISTRACTED DETECTION (Yaw - Looking Away)
+        else if (headYaw > 28 || headYaw < -28) {
+          status = "Distracted"; score = 40; msg = "Looking away from screen";
+        }
+        // 3. DISTRACTED DETECTION (Pitch - Looking Down)
+        else if (headPitch > 1.6) {
+          status = "Distracted"; score = 50; msg = "Looking down (Phone/Book)";
+        }
+        // 4. DISTRACTED DETECTION (Pitch - Looking Up)
+        else if (headPitch < 0.6) {
+          status = "Distracted"; score = 55; msg = "Looking up (Daydreaming)";
+        }
+        // 5. ROLL DETECTION (Head Tilt)
+        else if (headRoll > 30 || headRoll < -30) {
+          status = "Distracted"; score = 60; msg = "Head tilted excessively";
         }
 
         setAnalysisData({ status, attention_percentage: score, observations: msg });
-        setDebugLog(`SUCCESS: ${status.toUpperCase()} (EAR: ${avgEAR.toFixed(2)})`);
+        setDebugLog(`SYNC: ${status.toUpperCase()} | Y:${headYaw.toFixed(0)} P:${headPitch.toFixed(1)} R:${headRoll.toFixed(0)}`);
 
         if (ctx) {
            ctx.clearRect(0, 0, canvas.width, canvas.height);

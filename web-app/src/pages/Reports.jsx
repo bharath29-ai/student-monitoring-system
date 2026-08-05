@@ -21,6 +21,7 @@ export default function Reports() {
     if (user.role === 'teacher') {
       q = query(collection(db, 'reports'), where('teacherId', '==', user.id));
     } else if (user.role === 'student') {
+      // Allow searching by either studentId or uid for compatibility
       q = query(collection(db, 'reports'), where('studentId', '==', user.id));
     } else {
       q = query(collection(db, 'reports'), limit(100));
@@ -49,7 +50,7 @@ export default function Reports() {
   const stats = useMemo(() => {
     const res = { attentive: 0, distracted: 0, sleepy: 0 };
     reports.forEach(r => {
-      const status = r.status || 'attentive';
+      const status = (r.status || 'attentive').toLowerCase();
       if (res[status] !== undefined) res[status]++;
     });
     return res;
@@ -154,8 +155,8 @@ function MobileReports({ user, reports, stats, isLoading, setIsLoading }) {
                     <div key={report.id} className="p-3.5 bg-secondary/35 active:bg-secondary/60 rounded-xl border border-border/50 flex items-center justify-between transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                          report.status === 'attentive' ? 'bg-green-500' :
-                          report.status === 'distracted' ? 'bg-orange-500' : 'bg-purple-500'
+                          report.status?.toLowerCase() === 'attentive' ? 'bg-green-500' :
+                          report.status?.toLowerCase() === 'distracted' ? 'bg-orange-500' : 'bg-purple-500'
                         }`} />
                         <div>
                           <p className="text-xs font-black capitalize text-foreground">{report.status || 'Unknown'}</p>
@@ -167,7 +168,9 @@ function MobileReports({ user, reports, stats, isLoading, setIsLoading }) {
                       </div>
                       <div className="text-right min-w-0">
                         <p className="text-[10px] font-black text-foreground truncate max-w-[120px]">{report.className || 'General'}</p>
-                        <p className="text-[9px] text-muted-foreground font-semibold truncate max-w-[120px]">{user.role === 'teacher' ? report.studentName : report.teacherName}</p>
+                        <p className="text-[9px] text-muted-foreground font-semibold truncate max-w-[120px]">
+                          {user.role === 'teacher' ? report.studentName : (report.teacherName || 'Teacher')}
+                        </p>
                       </div>
                     </div>
                   ))
@@ -269,8 +272,8 @@ function DesktopReports({ user, reports, stats, isLoading, setIsLoading }) {
                     <div key={report.id} className="p-3 bg-secondary/30 rounded-xl border border-border flex items-center justify-between hover:bg-secondary/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full ${
-                          report.status === 'attentive' ? 'bg-green-500' :
-                          report.status === 'distracted' ? 'bg-orange-500' : 'bg-purple-500'
+                          report.status?.toLowerCase() === 'attentive' ? 'bg-green-500' :
+                          report.status?.toLowerCase() === 'distracted' ? 'bg-orange-500' : 'bg-purple-500'
                         }`} />
                         <div>
                           <p className="text-sm font-bold capitalize">{report.status || 'Unknown'}</p>
@@ -282,7 +285,9 @@ function DesktopReports({ user, reports, stats, isLoading, setIsLoading }) {
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-medium truncate max-w-[100px]">{report.className || 'General'}</p>
-                        <p className="text-[10px] text-muted-foreground">{user.role === 'teacher' ? report.studentName : report.teacherName}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {user.role === 'teacher' ? report.studentName : (report.teacherName || 'Teacher')}
+                        </p>
                       </div>
                     </div>
                   ))

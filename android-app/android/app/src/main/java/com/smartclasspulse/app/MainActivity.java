@@ -2,6 +2,7 @@ package com.smartclasspulse.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -22,6 +23,14 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         
         session = new UserSession(this);
+
+        // Apply Theme
+        if (session.isDarkMode()) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
         if (!session.isLoggedIn()) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();

@@ -42,8 +42,9 @@ export default function StudentCard({ student, index = 0 }) {
               {student.status}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Roll: {student.roll_number} {student.class_name && `• ${student.class_name}`}
+          <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[200px]">
+            {student.roll_number ? `Roll: ${student.roll_number}` : student.email}
+            {student.class_name && ` • ${student.class_name}`}
           </p>
           {student.attention_score != null && (
             <div className="mt-3">

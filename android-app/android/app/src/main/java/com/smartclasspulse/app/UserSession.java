@@ -8,11 +8,20 @@ public class UserSession {
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_USER_ROLE = "user_role";
+    private static final String KEY_DARK_MODE = "dark_mode";
 
     private SharedPreferences prefs;
 
     public UserSession(Context context) {
         prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+    }
+
+    public void setDarkMode(boolean isDark) {
+        prefs.edit().putBoolean(KEY_DARK_MODE, isDark).apply();
+    }
+
+    public boolean isDarkMode() {
+        return prefs.getBoolean(KEY_DARK_MODE, false);
     }
 
     public void startSession(String userId, String name, String role) {

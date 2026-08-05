@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/cardBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +19,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@android:drawable/ic_menu_myplaces"
-            android:backgroundTint="#CCCCCC" />
+            android:backgroundTint="@color/onSurfaceSecondary" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -51,7 +52,18 @@
             android:text="100%"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimary" />
+            android:textColor="@color/colorPrimary"
+            android:layout_marginEnd="8dp" />
+
+        <ImageButton
+            android:id="@+id/deleteStudentBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            android:contentDescription="Delete Student"
+            app:tint="@color/sleepy"
+            android:visibility="gone" />
 
     </LinearLayout>
 

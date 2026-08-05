@@ -52,25 +52,39 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
 
   // Helper to logout
   async function logoutCurrentUser() {
+    reportGenerator.log('Logging out current user...');
     try {
+      // Short delay to let any animations settle
+      await driver.sleep(1000);
+
+      // 1. Check if we are on the Pending Approval screen (has "Sign Out" button)
       const pendingSignOut = await driver.findElements(By.xpath('//button[contains(., "Sign Out")]'));
       if (pendingSignOut.length > 0) {
         await driver.executeScript("arguments[0].click();", pendingSignOut[0]);
-        await driver.wait(until.urlContains('/login'), 10000);
+        reportGenerator.log('Clicked "Sign Out" on pending screen.');
+        try { await driver.wait(until.urlContains('/login'), 5000); } catch (e) {}
         return;
       }
+
+      // 2. Check if we are on the main layouts (has sidebar/menu "Logout" button)
       const sidebarLogout = await driver.findElements(By.xpath('//button[contains(., "Logout")]'));
       if (sidebarLogout.length > 0) {
         await driver.executeScript("arguments[0].click();", sidebarLogout[0]);
-        await driver.wait(until.urlContains('/login'), 10000);
+        reportGenerator.log('Clicked "Logout" on sidebar.');
+        try { await driver.wait(until.urlContains('/login'), 5000); } catch (e) {}
         return;
       }
+
+      // 3. Fallback: navigate to splash, clear session, go to login
+      reportGenerator.log('No logout button found on screen. Using fallback clearing.');
       await driver.get(`${BASE_URL}/splash`);
       await driver.executeScript('window.localStorage.clear();');
       await driver.executeScript('window.sessionStorage.clear();');
       await driver.get(`${BASE_URL}/login`);
     } catch (e) {
-      // Ignored for self-healing
+      reportGenerator.log(`Logout warning: ${e.message}`, 'WARNING');
+      // Force navigation if all else fails
+      try { await driver.get(`${BASE_URL}/login`); } catch (err) {}
     }
   }
 
@@ -461,14 +475,18 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
             expect(hasBtn).to.be.true;
           } else if (t.id === 96) {
             // Fill form and create
+            reportGenerator.log('Filling out classroom creation form...');
             await driver.findElement(By.css('input[placeholder="e.g. Physics 101"]')).sendKeys(CLASS_NAME);
+
             const teacherSelect = await driver.findElement(By.css('button[role="combobox"]'));
             await driver.executeScript("arguments[0].click();", teacherSelect);
-            await driver.sleep(400);
+            await driver.sleep(1000);
 
-            const teacherItem = await driver.findElement(By.xpath('//div[@role="option"]//span[text()="testteacher"] | //div[@role="option" and contains(., "testteacher")]'));
+            const teacherItemXpath = '//div[@role="option"]//span[contains(text(), "testteacher")] | //div[@role="option" and contains(., "testteacher")]';
+            await driver.wait(until.elementLocated(By.xpath(teacherItemXpath)), 10000);
+            const teacherItem = await driver.findElement(By.xpath(teacherItemXpath));
             await driver.executeScript("arguments[0].click();", teacherItem);
-            await driver.sleep(400);
+            await driver.sleep(500);
 
             const createBtn = await driver.findElement(By.xpath('//button[contains(., "Create Class")]'));
             await driver.executeScript("arguments[0].click();", createBtn);

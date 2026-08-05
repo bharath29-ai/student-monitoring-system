@@ -20,11 +20,22 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
+import android.os.Environment;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public class ReportsFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private FirebaseFirestore db;
     private UserSession session;
+    private List<ReportItem> currentReports = new ArrayList<>();
 
     @Nullable
     @Override
@@ -37,6 +48,8 @@ public class ReportsFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         session = new UserSession(getContext());
         
+        view.findViewById(R.id.exportPdfFab).setOnClickListener(v -> exportToPdf());
+
         loadReports();
         
         return view;
@@ -49,16 +62,73 @@ public class ReportsFragment extends Fragment {
         if ("student".equals(session.getUserRole())) {
             query = db.collection("reports")
                     .whereEqualTo("studentId", session.getUserId());
+        } else if ("teacher".equals(session.getUserRole())) {
+            query = db.collection("reports")
+                    .whereEqualTo("teacherId", session.getUserId());
         } else {
-            // Teachers see all reports for classes they manage or all reports for now
+            // Admins can see all
             query = db.collection("reports");
         }
 
         query.orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<ReportItem> reports = queryDocumentSnapshots.toObjects(ReportItem.class);
-                    recyclerView.setAdapter(new ReportAdapter(reports));
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) return;
+                    currentReports = value.toObjects(ReportItem.class);
+                    recyclerView.setAdapter(new ReportAdapter(currentReports));
                 });
+    }
+
+    private void exportToPdf() {
+        if (currentReports.isEmpty()) {
+            Toast.makeText(getContext(), "No data to export", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PdfDocument pdfDocument = new PdfDocument();
+        Paint paint = new Paint();
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+
+        paint.setTextSize(18);
+        paint.setFakeBoldText(true);
+        canvas.drawText("Smart Class Pulse - Attendance Report", 50, 50, paint);
+
+        paint.setTextSize(12);
+        paint.setFakeBoldText(false);
+        int y = 100;
+        
+        canvas.drawText("Generated on: " + new java.util.Date().toString(), 50, y, paint);
+        y += 30;
+
+        for (ReportItem report : currentReports) {
+            if (y > 800) {
+                pdfDocument.finishPage(page);
+                pageInfo = new PdfDocument.PageInfo.Builder(595, 842, pdfDocument.getPages().size() + 1).create();
+                page = pdfDocument.startPage(pageInfo);
+                canvas = page.getCanvas();
+                y = 50;
+            }
+            
+            String line = (report.getTimestamp() != null ? report.getTimestamp().toDate().toString() : "N/A") + 
+                         " | " + report.getStudentName() + 
+                         " | Status: " + report.getStatus();
+            canvas.drawText(line, 50, y, paint);
+            y += 20;
+        }
+
+        pdfDocument.finishPage(page);
+
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File file = new File(downloadsDir, "SmartClassPulse_Report_" + System.currentTimeMillis() + ".pdf");
+
+        try {
+            pdfDocument.writeTo(new FileOutputStream(file));
+            Toast.makeText(getContext(), "Report saved to Downloads", Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        pdfDocument.close();
     }
 }
