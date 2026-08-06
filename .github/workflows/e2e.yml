@@ -47,6 +47,10 @@ jobs:
           cd web-app
           npm run test:e2e
 
+      - name: Stop Vite development server
+        if: always()
+        run: npx kill-port 5173 || true
+
       - name: Upload Test Report (Excel)
         if: always()
         uses: actions/upload-artifact@v4
