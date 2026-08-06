@@ -1,0 +1,28 @@
+config:
+  target: "https://app-084e0d55.web.app"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: Warm up
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 20
+      name: Ramp up load
+    - duration: 180
+      arrivalRate: 20
+      name: Sustained load
+  defaults:
+    headers:
+      User-Agent: "Artillery-Load-Test"
+
+scenarios:
+  - name: "Homepage and Login Flow"
+    flow:
+      - get:
+          url: "/"
+      - think: 1
+      - get:
+          url: "/login"
+      - think: 2
+      - get:
+          url: "/splash"
