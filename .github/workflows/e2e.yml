@@ -1,0 +1,76 @@
+# E2E Testing Pipeline for Smart Class Pulse
+name: E2E Testing Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'web-app/package-lock.json'
+
+      - name: Verify Chrome Installation
+        run: google-chrome --version
+
+      - name: Install dependencies
+        run: |
+          cd web-app
+          npm ci
+
+      - name: Create .env file
+        run: |
+          cat <<EOF > web-app/.env
+          VITE_APP_ID=com.smartclasspulse.app
+          VITE_FUNCTIONS_VERSION=v1
+          VITE_APP_BASE_URL=https://app-084e0d55.web.app
+          VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GEMINI_MODEL=gemini-1.5-pro
+          EOF
+
+      - name: Start Vite development server
+        run: |
+          cd web-app
+          npm run dev &
+          npx wait-on http://localhost:5173 --timeout 60000
+          echo "Vite server is up."
+
+      - name: Run E2E Tests
+        timeout-minutes: 20
+        run: |
+          cd web-app
+          npm run test:e2e
+
+      - name: Stop Vite development server
+        if: always()
+        run: npx kill-port 5173 || true
+
+      - name: Upload Test Report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-test-results
+          path: web-app/test-results.xlsx
+          if-no-files-found: warn
+
+      - name: Upload Failure Screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-failure-screenshots
+          path: web-app/tests/screenshots/
+          if-no-files-found: ignore
