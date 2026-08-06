@@ -110,7 +110,7 @@ function StudentDashboard() {
                       </div>
                     </div>
                     <Link to="/camera" className="w-full sm:w-auto">
-                      <Button className="w-full sm:w-auto h-11 rounded-full font-black text-[11px] uppercase tracking-wider gap-2 shadow-md shadow-primary/15 active:scale-95 transition-all">
+                      <Button data-testid="start-monitoring-button" className="w-full sm:w-auto h-11 rounded-full font-black text-[11px] uppercase tracking-wider gap-2 shadow-md shadow-primary/15 active:scale-95 transition-all">
                         <Camera className="w-4 h-4" /> Start Monitoring
                       </Button>
                     </Link>
@@ -135,7 +135,7 @@ function StudentDashboard() {
                     <p className="font-bold text-sm text-foreground">{cls.name}</p>
                     <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-tight">Lead: {cls.teacherName}</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => handleEnroll(cls.id, cls.teacherId)} className="h-10 rounded-full font-bold px-5 text-xs border-primary/25 hover:border-primary/50 text-primary active:scale-95 transition-all bg-background">
+                  <Button data-testid={`enroll-button-${cls.id}`} variant="outline" size="sm" onClick={() => handleEnroll(cls.id, cls.teacherId)} className="h-10 rounded-full font-bold px-5 text-xs border-primary/25 hover:border-primary/50 text-primary active:scale-95 transition-all bg-background">
                     Enroll
                   </Button>
                 </div>

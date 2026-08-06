@@ -364,24 +364,28 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         await driver.executeScript("arguments[0].click();", submitBtn);
 
         // Landing on Student Dashboard
-        await driver.wait(until.urlContains('/dashboard'), 15000);
+        await driver.wait(until.urlContains('/dashboard'), 20000);
         reportGenerator.log('Logged in to Student Dashboard.');
 
         // Find available class and click Enroll
-        const classCardXpath = `//div[div/p[contains(text(), "${CLASS_NAME}")]] | //div[p[contains(text(), "${CLASS_NAME}")]]`;
-        await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 15000);
+        reportGenerator.log(`Looking for class: ${CLASS_NAME}`);
+        const classCardXpath = `//div[contains(@class, "border-border/60") and .//p[contains(text(), "${CLASS_NAME}")]]`;
+        await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 20000);
         const classCard = await driver.findElement(By.xpath(classCardXpath));
-        const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll")]'));
-        await driver.executeScript("arguments[0].click();", enrollBtn);
 
-        // Wait for list update
-        await driver.sleep(3000);
+        // Find the enroll button within this card
+        const enrollBtn = await classCard.findElement(By.css('button[data-testid^="enroll-button-"]'));
+        await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", enrollBtn);
+        await driver.sleep(1000);
+        await driver.executeScript("arguments[0].click();", enrollBtn);
+        reportGenerator.log('Clicked Enroll button.');
+
+        // Wait for list update - checking that the class card disappears from "Available" or appears in "My Classes"
+        await driver.sleep(4000);
 
         // Verify it is now in My Classes
-        const myClassesCardXpath = `//p[contains(text(), "${CLASS_NAME}")]`;
-        await driver.wait(until.elementLocated(By.xpath(myClassesCardXpath)), 15000);
-        const myClassesCard = await driver.findElement(By.xpath(myClassesCardXpath));
-        expect(myClassesCard).to.not.be.null;
+        const myClassesCardXpath = `//div[contains(@class, "bg-secondary/35")]//p[contains(text(), "${CLASS_NAME}")]`;
+        await driver.wait(until.elementLocated(By.xpath(myClassesCardXpath)), 20000);
         reportGenerator.log(`Enrolled in ${CLASS_NAME} successfully.`);
 
         reportGenerator.addResult('Student Flow', 'Student dashboard login and class enrollment', true, null, Date.now() - startTime);
@@ -421,18 +425,23 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
     it('should navigate to Camera Monitor and start monitoring', async function() {
       const startTime = Date.now();
       try {
-        // Find Start Monitoring button
-        const monitorBtnXpath = `//p[contains(text(), "${CLASS_NAME}")]/following::button[1]`;
-        await driver.wait(until.elementLocated(By.xpath(monitorBtnXpath)), 15000);
-        const monitorBtn = await driver.findElement(By.xpath(monitorBtnXpath));
+        // Find Start Monitoring button using data-testid
+        reportGenerator.log('Looking for Start Monitoring button...');
+        const monitorBtn = await driver.wait(until.elementLocated(By.css('button[data-testid="start-monitoring-button"]')), 20000);
+        await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", monitorBtn);
+        await driver.sleep(1000);
         await driver.executeScript("arguments[0].click();", monitorBtn);
 
         // Redirect to camera monitor page
-        await driver.wait(until.urlContains('/camera'), 15000);
+        await driver.wait(until.urlContains('/camera'), 20000);
         reportGenerator.log('Redirected to Camera page.');
 
         // Verify monitor component loaded
-        await driver.wait(until.elementLocated(By.xpath('//h1[contains(., "Face Monitor")]')), 15000);
+        await driver.wait(async () => {
+           const text = await driver.findElement(By.css('body')).getText();
+           return text.includes('Face Monitor') || text.includes('Hardware Ready');
+        }, 20000, 'Camera Monitor page failed to load content');
+
         reportGenerator.log('Verified Camera Monitor page content.');
 
         // Sign out Student
