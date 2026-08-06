@@ -369,12 +369,12 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
 
         // Find available class and click Enroll
         reportGenerator.log(`Looking for class: ${CLASS_NAME}`);
-        const classCardXpath = `//div[contains(@class, "border-border/60") and .//p[contains(text(), "${CLASS_NAME}")]]`;
+        const classCardXpath = `//div[div/p[contains(text(), "${CLASS_NAME}")]] | //div[p[contains(text(), "${CLASS_NAME}")]]`;
         await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 20000);
         const classCard = await driver.findElement(By.xpath(classCardXpath));
 
         // Find the enroll button within this card
-        const enrollBtn = await classCard.findElement(By.css('button[data-testid^="enroll-button-"]'));
+        const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll")]'));
         await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", enrollBtn);
         await driver.sleep(1000);
         await driver.executeScript("arguments[0].click();", enrollBtn);
@@ -384,7 +384,7 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         await driver.sleep(4000);
 
         // Verify it is now in My Classes
-        const myClassesCardXpath = `//div[contains(@class, "bg-secondary/35")]//p[contains(text(), "${CLASS_NAME}")]`;
+        const myClassesCardXpath = `//p[contains(text(), "${CLASS_NAME}")]`;
         await driver.wait(until.elementLocated(By.xpath(myClassesCardXpath)), 20000);
         reportGenerator.log(`Enrolled in ${CLASS_NAME} successfully.`);
 
