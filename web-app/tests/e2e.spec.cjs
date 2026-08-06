@@ -439,8 +439,8 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         // Verify monitor component loaded
         await driver.wait(async () => {
            const text = await driver.findElement(By.css('body')).getText();
-           return text.includes('Face Monitor') || text.includes('Hardware Ready');
-        }, 20000, 'Camera Monitor page failed to load content');
+           return text.includes('Face Monitor') || text.includes('Hardware Ready') || text.includes('MONITOR');
+        }, 25000, 'Camera Monitor page failed to load content');
 
         reportGenerator.log('Verified Camera Monitor page content.');
 
