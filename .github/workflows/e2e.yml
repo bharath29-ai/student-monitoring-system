@@ -76,7 +76,6 @@ jobs:
           if-no-files-found: ignore
 
   load-test:
-    needs: e2e-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
