@@ -622,16 +622,6 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
       });
     });
   });
-          reportGenerator.addResult('Student Dashboard', t.desc, true, null, Date.now() - start);
-        } catch (err) {
-          await logFailureDetails(t.desc, err);
-          reportGenerator.addResult('Student Dashboard', t.desc, false, err.message, Date.now() - start);
-          throw err;
-        }
-      });
-    });
-  });
-
   // ============================================================
   // CATEGORY 7: DASHBOARD - TEACHER VIEW (25 Tests)
   // ============================================================
