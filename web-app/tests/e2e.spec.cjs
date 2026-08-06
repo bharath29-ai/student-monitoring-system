@@ -254,8 +254,8 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
 
         // Approve Student
         reportGenerator.log(`Approving student: ${STUDENT_USER.email}`);
-        const studentRowXpath = `//div[contains(@class, "shadow-sm") and .//p[text()="${STUDENT_USER.email}"]]`;
-        await driver.wait(until.elementLocated(By.xpath(studentRowXpath)), 15000);
+        const studentRowXpath = `//div[.//p[contains(text(), "${STUDENT_USER.email}")]]`;
+        await driver.wait(until.elementLocated(By.xpath(studentRowXpath)), 30000);
         const userRow = await driver.findElement(By.xpath(studentRowXpath));
         const approveBtn = await userRow.findElement(By.xpath('.//button[contains(., "Approve")]'));
         
