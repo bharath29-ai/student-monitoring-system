@@ -425,9 +425,12 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
     it('should navigate to Camera Monitor and start monitoring', async function() {
       const startTime = Date.now();
       try {
-        // Find Start Monitoring button using data-testid
+        // Ensure Dashboard welcome header is rendered first to avoid page loading race conditions
+        await driver.wait(until.elementLocated(By.xpath('//h2[contains(text(), "Welcome")]')), 20000);
+
+        // Find Start Monitoring button using data-testid with 30s timeout
         reportGenerator.log('Looking for Start Monitoring button...');
-        const monitorBtn = await driver.wait(until.elementLocated(By.css('button[data-testid="start-monitoring-button"]')), 20000);
+        const monitorBtn = await driver.wait(until.elementLocated(By.css('button[data-testid="start-monitoring-button"]')), 30000);
         await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", monitorBtn);
         await driver.sleep(1000);
         await driver.executeScript("arguments[0].click();", monitorBtn);
