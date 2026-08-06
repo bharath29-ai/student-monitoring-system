@@ -1,15 +1,15 @@
 config:
   target: "https://app-084e0d55.web.app"
   phases:
-    - duration: 60
-      arrivalRate: 5
+    - duration: 20
+      arrivalRate: 2
       name: Warm up
-    - duration: 120
-      arrivalRate: 5
-      rampTo: 20
+    - duration: 40
+      arrivalRate: 2
+      rampTo: 10
       name: Ramp up load
-    - duration: 180
-      arrivalRate: 20
+    - duration: 60
+      arrivalRate: 10
       name: Sustained load
   defaults:
     headers:
@@ -23,6 +23,6 @@ scenarios:
       - think: 1
       - get:
           url: "/login"
-      - think: 2
+      - think: 1
       - get:
           url: "/splash"
