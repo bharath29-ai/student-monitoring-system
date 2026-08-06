@@ -70,7 +70,7 @@ function StudentDashboard() {
           <GraduationCap className="w-6 h-6" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-foreground">Hello, {user?.displayName || user?.name || 'Student'}!</h2>
+          <h2 className="text-xl font-bold text-foreground">Welcome, {user?.displayName || user?.name || 'Student'}!</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Let's check your enrolled attention feeds</p>
         </div>
       </div>
@@ -177,7 +177,7 @@ function AdminDashboardSummary() {
           <Shield className="w-6 h-6" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-foreground">Hello, {user?.displayName || user?.name || 'Admin'}!</h2>
+          <h2 className="text-xl font-bold text-foreground">Welcome, {user?.displayName || user?.name || 'Admin'}!</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Control panel & pending registration approvals</p>
         </div>
       </div>
@@ -274,7 +274,7 @@ function TeacherDashboard() {
             <Activity className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Hello, {user?.displayName || user?.name || 'Teacher'}!</h2>
+            <h2 className="text-xl font-bold text-foreground">Welcome, {user?.displayName || user?.name || 'Teacher'}!</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Real-time classroom engagement overview</p>
           </div>
         </div>

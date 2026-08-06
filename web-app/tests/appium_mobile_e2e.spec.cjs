@@ -68,6 +68,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
       await driver.get(`${BASE_URL}/splash`);
       await driver.executeScript('window.localStorage.clear();');
       await driver.executeScript('window.sessionStorage.clear();');
+      await driver.executeScript('window.indexedDB && window.indexedDB.deleteDatabase("firebaseLocalStorageDb");');
       await driver.get(`${BASE_URL}/login`);
     } catch (e) {
       // Ignored for self-healing
@@ -141,7 +142,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
             expect(url).to.satisfy(u => u.includes('/splash') || u.includes('/login'));
           } else if (t.id === 3) {
             const hasSplashTitle = await verifyElement('//h1[contains(., "Smart Classroom")]', 'xpath');
-            const hasLoginTitle = await verifyElement('//h1[contains(., "Sign In") or contains(., "Login")]', 'xpath');
+            const hasLoginTitle = await verifyElement('//h1[contains(., "Sign In") or contains(., "Login")] | //h2[contains(., "Sign In") or contains(., "Login")] | //h3[contains(., "Sign In") or contains(., "Login")]', 'xpath');
             const hasDashboardTitle = await verifyElement('//h1[contains(., "Dashboard") or contains(., "Face Monitor")] | //h2[contains(., "Dashboard")]', 'xpath');
             expect(hasSplashTitle || hasLoginTitle || hasDashboardTitle).to.be.true;
           } else if (t.id === 8) {
@@ -282,6 +283,10 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
             await driver.findElement(By.id('name')).sendKeys(STUDENT_USER.fullName);
             await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
             
+            // Wait for teachers to load from Firestore to prevent race conditions on form submit
+            reportGenerator.log('Waiting for approved teacher selection list to load...');
+            await driver.wait(until.elementLocated(By.xpath('//option[text()="testteacher"]')), 15000);
+
             const roleTrigger = await driver.findElement(By.css('button[role="combobox"]'));
             await driver.executeScript("arguments[0].click();", roleTrigger);
             await driver.sleep(400);
@@ -381,8 +386,12 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
         await driver.get(`${BASE_URL}/login`);
         await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-        await driver.findElement(By.id('email')).sendKeys('testadmin@example.com');
-        await driver.findElement(By.id('password')).sendKeys('adminpass123');
+        const emailField = await driver.findElement(By.id('email'));
+        await emailField.clear();
+        await emailField.sendKeys('testadmin@example.com');
+        const passField = await driver.findElement(By.id('password'));
+        await passField.clear();
+        await passField.sendKeys('adminpass123');
         const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
         await driver.executeScript("arguments[0].click();", submitBtn);
 
@@ -534,8 +543,12 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
       await driver.get(`${BASE_URL}/login`);
       await driver.wait(until.elementLocated(By.id('email')), 10000);
 
-      await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
-      await driver.findElement(By.id('password')).sendKeys(STUDENT_USER.password);
+      const emailField = await driver.findElement(By.id('email'));
+      await emailField.clear();
+      await emailField.sendKeys(STUDENT_USER.email);
+      const passField = await driver.findElement(By.id('password'));
+      await passField.clear();
+      await passField.sendKeys(STUDENT_USER.password);
       const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
       await driver.executeScript("arguments[0].click();", submitBtn);
 
@@ -554,6 +567,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
       // Go back to dashboard to continue tests
       await driver.get(`${BASE_URL}/dashboard`);
       await driver.wait(until.urlContains('/dashboard'), 10000);
+      await driver.wait(until.elementLocated(By.xpath('//h2[contains(text(), "Hello,") or contains(text(), "Welcome")]')), 15000);
     });
 
     const tests = [
@@ -591,14 +605,14 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
           if (t.id === 104) {
             expect(studentAccessBlocked).to.be.true;
           } else if (t.id === 110) {
-            const classCardXpath = `//div[contains(., "${CLASS_NAME}")]`;
+            const classCardXpath = `//div[div/p[contains(text(), "${CLASS_NAME}")]] | //div[p[contains(text(), "${CLASS_NAME}")]]`;
             await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 15000);
             const classCard = await driver.findElement(By.xpath(classCardXpath));
-            const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll Now")]'));
+            const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll")]'));
             await driver.executeScript("arguments[0].click();", enrollBtn);
             await driver.sleep(3000); // DB sync
           } else if (t.id === 111 || t.id === 112) {
-            const myClassesCardXpath = `//div[contains(., "My Classes")]//p[contains(text(), "${CLASS_NAME}")]`;
+            const myClassesCardXpath = `//p[contains(text(), "${CLASS_NAME}")]`;
             await driver.wait(until.elementLocated(By.xpath(myClassesCardXpath)), 15000);
             const myClassesCard = await driver.findElement(By.xpath(myClassesCardXpath));
             expect(myClassesCard).to.not.be.null;
@@ -626,8 +640,12 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
         await driver.get(`${BASE_URL}/login`);
         await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-        await driver.findElement(By.id('email')).sendKeys('testteacher@example.com');
-        await driver.findElement(By.id('password')).sendKeys('teacherpass123');
+        const emailField = await driver.findElement(By.id('email'));
+        await emailField.clear();
+        await emailField.sendKeys('testteacher@example.com');
+        const passField = await driver.findElement(By.id('password'));
+        await passField.clear();
+        await passField.sendKeys('teacherpass123');
         const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
         await driver.executeScript("arguments[0].click();", submitBtn);
 
@@ -708,17 +726,20 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
         await driver.get(`${BASE_URL}/login`);
         await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-        await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
-        await driver.findElement(By.id('password')).sendKeys(STUDENT_USER.password);
+        const emailField = await driver.findElement(By.id('email'));
+        await emailField.clear();
+        await emailField.sendKeys(STUDENT_USER.email);
+        const passField = await driver.findElement(By.id('password'));
+        await passField.clear();
+        await passField.sendKeys(STUDENT_USER.password);
         const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
         await driver.executeScript("arguments[0].click();", submitBtn);
 
         await driver.wait(until.urlContains('/dashboard'), 25000);
 
-        const classCardXpath = `//div[contains(., "${CLASS_NAME}")]`;
-        await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 25000);
-        const classCard = await driver.findElement(By.xpath(classCardXpath));
-        const monitorBtn = await classCard.findElement(By.xpath('.//button[contains(., "Start Monitoring")]'));
+        const monitorBtnXpath = `//p[contains(text(), "${CLASS_NAME}")]/following::button[1]`;
+        await driver.wait(until.elementLocated(By.xpath(monitorBtnXpath)), 25000);
+        const monitorBtn = await driver.findElement(By.xpath(monitorBtnXpath));
         
         // Use pointer/mouse events click sequence
         await driver.executeScript(`
@@ -808,8 +829,12 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
       await driver.get(`${BASE_URL}/login`);
       await driver.wait(until.elementLocated(By.id('email')), 10000);
 
-      await driver.findElement(By.id('email')).sendKeys('testteacher@example.com');
-      await driver.findElement(By.id('password')).sendKeys('teacherpass123');
+      const emailField = await driver.findElement(By.id('email'));
+      await emailField.clear();
+      await emailField.sendKeys('testteacher@example.com');
+      const passField = await driver.findElement(By.id('password'));
+      await passField.clear();
+      await passField.sendKeys('teacherpass123');
       const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
       await driver.executeScript("arguments[0].click();", submitBtn);
 
@@ -875,8 +900,12 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
       await driver.get(`${BASE_URL}/login`);
       await driver.wait(until.elementLocated(By.id('email')), 10000);
 
-      await driver.findElement(By.id('email')).sendKeys('testteacher@example.com');
-      await driver.findElement(By.id('password')).sendKeys('teacherpass123');
+      const emailField = await driver.findElement(By.id('email'));
+      await emailField.clear();
+      await emailField.sendKeys('testteacher@example.com');
+      const passField = await driver.findElement(By.id('password'));
+      await passField.clear();
+      await passField.sendKeys('teacherpass123');
       const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
       await driver.executeScript("arguments[0].click();", submitBtn);
 

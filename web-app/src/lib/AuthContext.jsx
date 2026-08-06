@@ -28,16 +28,27 @@ export const AuthProvider = ({ children }) => {
         unsubUser = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             const userData = docSnap.data();
-            setUser({
-              id: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName || userData.name,
-              photoURL: firebaseUser.photoURL,
-              ...userData
-            });
-            setIsAuthenticated(true);
-            setAuthError(null);
+
+            // Check for rejected status
+            if (userData.status === 'rejected') {
+              signOut(auth);
+              setUser(null);
+              setIsAuthenticated(false);
+              setAuthError("Your account has been rejected.");
+            } else {
+              setUser({
+                id: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName || userData.name,
+                photoURL: firebaseUser.photoURL,
+                ...userData
+              });
+              setIsAuthenticated(true);
+              setAuthError(null);
+            }
           } else {
+            // If document doesn't exist, wait a bit or handle gracefully
+            // For E2E stability, we'll allow a fallback if doc is missing temporarily
             setUser({
               id: firebaseUser.uid,
               email: firebaseUser.email,

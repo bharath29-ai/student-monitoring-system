@@ -1,11 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Shield, Calendar, LogOut } from 'lucide-react';
+import { User, Mail, Shield, Calendar, LogOut, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/use-toast';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { deleteUser } from 'firebase/auth';
 
 export default function Profile() {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    setIsDeleting(true);
+    try {
+      const uid = currentUser.uid;
+
+      // 1. Delete from Firestore first
+      await deleteDoc(doc(db, 'users', uid));
+
+      // 2. Delete from Authentication
+      await deleteUser(currentUser);
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account and data have been permanently removed.",
+      });
+
+      // Local cleanup will be handled by the auth state observer in AuthContext
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+
+      let errorMessage = "Failed to delete account.";
+      if (error.code === 'auth/requires-recent-login') {
+        errorMessage = "For security, you must have logged in recently to delete your account. Please sign out and sign in again.";
+      }
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-slide-up pb-10">
@@ -60,13 +105,54 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        <Button
-          variant="destructive"
-          className="w-full h-14 rounded-[28px] font-black text-xs uppercase tracking-[0.2em] gap-3 shadow-lg shadow-destructive/10 active:scale-95 transition-all mt-4"
-          onClick={() => logout()}
-        >
-          <LogOut className="w-5 h-5" /> Sign Out
-        </Button>
+        <div className="space-y-3">
+          <Button
+            variant="outline"
+            className="w-full h-14 rounded-[28px] font-black text-xs uppercase tracking-[0.2em] gap-3 active:scale-95 transition-all mt-2"
+            onClick={() => logout()}
+          >
+            <LogOut className="w-5 h-5" /> Sign Out
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full h-10 rounded-xl text-destructive hover:bg-destructive/10 text-[10px] font-black uppercase tracking-widest gap-2"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete My Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="rounded-3xl">
+              <AlertDialogHeader>
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
+                </div>
+                <AlertDialogTitle className="text-xl font-black tracking-tight">Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm font-medium text-muted-foreground">
+                  This will permanently delete your account and remove all of your data from our servers.
+                  <span className="block mt-2 font-bold text-destructive underline">This action cannot be undone.</span>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-4">
+                <AlertDialogCancel className="rounded-2xl font-bold">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDeleteAccount();
+                  }}
+                  disabled={isDeleting}
+                  className="bg-destructive hover:bg-destructive/90 text-white rounded-2xl font-bold"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : null}
+                  Delete Everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );

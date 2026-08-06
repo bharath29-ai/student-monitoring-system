@@ -49,16 +49,16 @@ export default function AdminPanel() {
 
       <Tabs defaultValue="approvals">
         <TabsList className="bg-secondary p-1">
-          <TabsTrigger value="approvals" className="flex items-center gap-2">
+          <TabsTrigger value="approvals" className="flex items-center gap-2" data-testid="tab-approvals">
             <UserCheck className="w-4 h-4" /> Approvals
           </TabsTrigger>
-          <TabsTrigger value="classes" className="flex items-center gap-2">
+          <TabsTrigger value="classes" className="flex items-center gap-2" data-testid="tab-classes">
             <GraduationCap className="w-4 h-4" /> Classes
           </TabsTrigger>
-          <TabsTrigger value="students" className="flex items-center gap-2">
+          <TabsTrigger value="students" className="flex items-center gap-2" data-testid="tab-students">
             <Users className="w-4 h-4" /> Students
           </TabsTrigger>
-          <TabsTrigger value="teachers" className="flex items-center gap-2">
+          <TabsTrigger value="teachers" className="flex items-center gap-2" data-testid="tab-teachers">
             <Users className="w-4 h-4" /> Teachers
           </TabsTrigger>
         </TabsList>

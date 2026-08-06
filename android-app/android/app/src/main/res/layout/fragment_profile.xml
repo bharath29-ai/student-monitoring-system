@@ -67,4 +67,15 @@
         android:backgroundTint="#F44336"
         android:textColor="#FFFFFF" />
 
+    <TextView
+        android:id="@+id/deleteAccountBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete My Account"
+        android:textColor="#F44336"
+        android:textSize="13sp"
+        android:layout_marginTop="32dp"
+        android:padding="8dp"
+        android:alpha="0.7" />
+
 </LinearLayout>

@@ -85,22 +85,23 @@ export default function AdminClasses() {
               placeholder="e.g. Physics 101"
               value={newClassName}
               onChange={e => setNewClassName(e.target.value)}
+              data-testid="class-name-input"
             />
           </div>
           <div className="space-y-2">
             <Label>Assign Teacher</Label>
             <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-              <SelectTrigger>
+              <SelectTrigger data-testid="teacher-select-trigger">
                 <SelectValue placeholder="Select Teacher" />
               </SelectTrigger>
               <SelectContent>
                 {teachers.map(t => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  <SelectItem key={t.id} value={t.id} data-testid={`teacher-option-${t.id}`}>{t.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="flex items-center gap-2">
+          <Button type="submit" className="flex items-center gap-2" data-testid="create-class-button">
             <Plus className="w-4 h-4" /> Create Class
           </Button>
         </form>

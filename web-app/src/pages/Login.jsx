@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,10 +32,38 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Verify user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+      if (!userDoc.exists()) {
+        await signOut(auth);
+        toast({
+          title: "Account Not Found",
+          description: "This account exists but has no profile. Please register again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const userData = userDoc.data();
+      if (userData.status === 'rejected') {
+        await signOut(auth);
+        toast({
+          title: "Account Rejected",
+          description: "Your account has been rejected by the administrator.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       toast({
         title: "Success",
-        description: "Logged in successfully!",
+        description: `Logged in successfully as ${userData.role || 'user'}!`,
       });
       navigate('/dashboard', { replace: true });
     } catch (error) {

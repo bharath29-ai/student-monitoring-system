@@ -79,7 +79,7 @@ function StudentDashboard() {
           <GraduationCap className="w-7 h-7 text-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-black text-foreground tracking-tight">Hello, {user?.displayName || user?.name || 'Student'}!</h2>
+          <h2 className="text-xl font-black text-foreground tracking-tight">Welcome, {user?.displayName || user?.name || 'Student'}!</h2>
           <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">My Learning Dashboard</p>
         </div>
       </div>
@@ -187,7 +187,7 @@ function AdminDashboardSummary() {
           <Shield className="w-7 h-7 text-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-black text-foreground tracking-tight">Hello, {user?.displayName || user?.name || 'Admin'}!</h2>
+          <h2 className="text-xl font-black text-foreground tracking-tight">Welcome, {user?.displayName || user?.name || 'Admin'}!</h2>
           <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mt-0.5">Control Terminal Access</p>
         </div>
       </div>
@@ -284,7 +284,7 @@ function TeacherDashboard() {
              <Activity className="w-8 h-8 -rotate-3 transition-transform" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-foreground tracking-tight">Hello, {user?.displayName || user?.name || 'Teacher'}!</h2>
+            <h2 className="text-2xl font-black text-foreground tracking-tight">Welcome, {user?.displayName || user?.name || 'Teacher'}!</h2>
             <p className="text-xs text-muted-foreground font-extrabold uppercase tracking-[0.2em] mt-1 opacity-70 flex items-center gap-2">
                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Live Engagement Sync
             </p>

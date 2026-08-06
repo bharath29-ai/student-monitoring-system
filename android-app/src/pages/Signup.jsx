@@ -34,7 +34,13 @@ export default function Signup() {
     // Fetch approved teachers for students to select
     const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
     const unsub = onSnapshot(q, (snapshot) => {
-      setTeachers(snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name })));
+      const fetched = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
+      setTeachers(fetched);
+      if (fetched.length > 0) {
+        setSelectedTeacherId(fetched[0].id);
+      }
+    }, (error) => {
+      console.error("Teachers snapshot error:", error);
     });
     return () => unsub();
   }, []);
@@ -88,14 +94,14 @@ export default function Signup() {
         displayName: name
       });
 
-      // Save user data to Firestore with approved status
+      // Save user data to Firestore with pending status for students
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         name: name,
         email: email,
         role: role,
         teacherId: role === 'student' ? selectedTeacherId : null,
-        status: 'approved',
+        status: role === 'student' ? 'pending' : 'approved',
         createdAt: new Date().toISOString()
       });
 
@@ -192,17 +198,22 @@ export default function Signup() {
               {role === 'student' && (
                 <div className="space-y-2 animate-slide-up">
                   <Label htmlFor="teacher">Select Teacher</Label>
-                  <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId} disabled={isLoading}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose your instructor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teachers.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                      {teachers.length === 0 && <SelectItem value="none" disabled>No teachers available</SelectItem>}
-                    </SelectContent>
-                  </Select>
+                  {teachers.length > 0 ? (
+                    <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId} disabled={isLoading}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose your instructor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teachers.map(t => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="h-9 w-full flex items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm text-muted-foreground shadow-sm animate-pulse">
+                      Loading instructors...
+                    </div>
+                  )}
                 </div>
               )}
               <div className="space-y-2">

@@ -28,24 +28,30 @@ export const AuthProvider = ({ children }) => {
         unsubUser = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             const userData = docSnap.data();
-            setUser({
-              id: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName || userData.name,
-              photoURL: firebaseUser.photoURL,
-              ...userData
-            });
-            setIsAuthenticated(true);
-            setAuthError(null);
+
+            // Check for rejected status
+            if (userData.status === 'rejected') {
+              signOut(auth);
+              setUser(null);
+              setIsAuthenticated(false);
+              setAuthError("Your account has been rejected.");
+            } else {
+              setUser({
+                id: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName || userData.name,
+                photoURL: firebaseUser.photoURL,
+                ...userData
+              });
+              setIsAuthenticated(true);
+              setAuthError(null);
+            }
           } else {
-            setUser({
-              id: firebaseUser.uid,
-              email: firebaseUser.email,
-              role: 'student',
-              status: 'approved'
-            });
-            setIsAuthenticated(true);
-            setAuthError(null);
+            // If document doesn't exist, it's a ghost account or deleted user
+            signOut(auth);
+            setUser(null);
+            setIsAuthenticated(false);
+            setAuthError("Account not found. Please register again.");
           }
           setIsLoadingAuth(false);
           setAuthChecked(true);

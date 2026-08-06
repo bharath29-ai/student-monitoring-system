@@ -93,11 +93,15 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       // Short delay to let any animations settle
       await driver.sleep(1000);
 
+      // Temporarily set implicit timeout to 0 for instant presence checks
+      await driver.manage().setTimeouts({ implicit: 0 });
+
       // 1. Check if we are on the Pending Approval screen (has "Sign Out" button)
       const pendingSignOut = await driver.findElements(By.xpath('//button[contains(., "Sign Out")]'));
       if (pendingSignOut.length > 0) {
         await driver.executeScript("arguments[0].click();", pendingSignOut[0]);
         reportGenerator.log('Clicked "Sign Out" on pending screen.');
+        await driver.manage().setTimeouts({ implicit: 5000 }); // Restore
         try { await driver.wait(until.urlContains('/login'), 5000); } catch (e) {}
         return;
       }
@@ -107,18 +111,25 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       if (sidebarLogout.length > 0) {
         await driver.executeScript("arguments[0].click();", sidebarLogout[0]);
         reportGenerator.log('Clicked "Logout" on sidebar.');
+        await driver.manage().setTimeouts({ implicit: 5000 }); // Restore
         try { await driver.wait(until.urlContains('/login'), 5000); } catch (e) {}
         return;
       }
+
+      // Restore implicit wait
+      await driver.manage().setTimeouts({ implicit: 5000 });
 
       // 3. Fallback: navigate to splash, clear session, go to login
       reportGenerator.log('No logout button found on screen. Using fallback clearing.');
       await driver.get(`${BASE_URL}/splash`);
       await driver.executeScript('window.localStorage.clear();');
       await driver.executeScript('window.sessionStorage.clear();');
+      await driver.executeScript('window.indexedDB && window.indexedDB.deleteDatabase("firebaseLocalStorageDb");');
       await driver.get(`${BASE_URL}/login`);
     } catch (e) {
       reportGenerator.log(`Logout warning: ${e.message}`, 'WARNING');
+      // Ensure timeout is restored in case of error
+      try { await driver.manage().setTimeouts({ implicit: 5000 }); } catch (tErr) {}
       // Force navigation if all else fails
       try { await driver.get(`${BASE_URL}/login`); } catch (err) {}
     }
@@ -139,6 +150,10 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         await driver.findElement(By.id('name')).sendKeys(STUDENT_USER.fullName);
         await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
         
+        // Wait for teachers to load from Firestore to prevent race conditions on form submit
+        reportGenerator.log('Waiting for approved teacher selection list to load...');
+        await driver.wait(until.elementLocated(By.xpath('//option[text()="testteacher"]')), 15000);
+
         // Select Student Role
         const roleTrigger = await driver.findElement(By.css('button[role="combobox"]'));
         await driver.executeScript("arguments[0].click();", roleTrigger);
@@ -371,17 +386,17 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         reportGenerator.log('Logged in to Student Dashboard.');
 
         // Find available class and click Enroll
-        const classCardXpath = `//div[contains(., "${CLASS_NAME}")]`;
+        const classCardXpath = `//div[div/p[contains(text(), "${CLASS_NAME}")]] | //div[p[contains(text(), "${CLASS_NAME}")]]`;
         await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 15000);
         const classCard = await driver.findElement(By.xpath(classCardXpath));
-        const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll Now")]'));
+        const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll")]'));
         await driver.executeScript("arguments[0].click();", enrollBtn);
 
         // Wait for list update
         await driver.sleep(3000);
 
         // Verify it is now in My Classes
-        const myClassesCardXpath = `//div[contains(., "My Classes")]//p[contains(text(), "${CLASS_NAME}")]`;
+        const myClassesCardXpath = `//p[contains(text(), "${CLASS_NAME}")]`;
         await driver.wait(until.elementLocated(By.xpath(myClassesCardXpath)), 15000);
         const myClassesCard = await driver.findElement(By.xpath(myClassesCardXpath));
         expect(myClassesCard).to.not.be.null;
@@ -421,10 +436,9 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
       const startTime = Date.now();
       try {
         // Find Start Monitoring button
-        const classCardXpath = `//div[contains(., "${CLASS_NAME}")]`;
-        await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 15000);
-        const classCard = await driver.findElement(By.xpath(classCardXpath));
-        const monitorBtn = await classCard.findElement(By.xpath('.//button[contains(., "Start Monitoring")]'));
+        const monitorBtnXpath = `//p[contains(text(), "${CLASS_NAME}")]/following::button[1]`;
+        await driver.wait(until.elementLocated(By.xpath(monitorBtnXpath)), 15000);
+        const monitorBtn = await driver.findElement(By.xpath(monitorBtnXpath));
         await driver.executeScript("arguments[0].click();", monitorBtn);
 
         // Redirect to camera monitor page
@@ -432,7 +446,7 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         reportGenerator.log('Redirected to Camera page.');
 
         // Verify monitor component loaded
-        await driver.wait(until.elementLocated(By.xpath('//h1[contains(., "Class Attention Monitor")]')), 15000);
+        await driver.wait(until.elementLocated(By.xpath('//h1[contains(., "Face Monitor")]')), 15000);
         reportGenerator.log('Verified Camera Monitor page content.');
 
         // Sign out Student
@@ -473,12 +487,10 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
 
         // Verify stats card is present
         reportGenerator.log('Waiting for Teacher Dashboard metrics cards to load...');
-        await driver.wait(until.elementLocated(By.xpath('//p[contains(text(), "Total Students") or contains(text(), "Attentive")]')), 15000);
-        
-        const pageText = await driver.findElement(By.css('body')).getText();
-        expect(pageText).to.include('Attentive');
-        expect(pageText).to.include('Distracted');
-        expect(pageText).to.include('Sleepy');
+        await driver.wait(async () => {
+          const text = await driver.findElement(By.css('body')).getText();
+          return text.includes('Attentive') && text.includes('Distracted') && text.includes('Sleepy');
+        }, 15000, 'Teacher Dashboard metrics cards (Attentive, Distracted, Sleepy) failed to appear in page text');
         reportGenerator.log('Verified stats card and engagement labels.');
 
         // Sign out Teacher

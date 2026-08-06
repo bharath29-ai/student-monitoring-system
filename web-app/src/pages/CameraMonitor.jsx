@@ -3,7 +3,7 @@ import { Camera, CameraOff, RefreshCw, Eye, GraduationCap, CheckCircle2, AlertTr
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
-import { addDoc, collection, serverTimestamp, query, where, onSnapshot } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, query, where, onSnapshot, doc } from 'firebase/firestore';
 import { useAuth } from '@/lib/AuthContext';
 import {
   Select,
@@ -355,6 +355,7 @@ export default function CameraMonitor() {
         enrolledClasses={enrolledClasses}
         selectedClassId={selectedClassId}
         setSelectedClassId={setSelectedClassId}
+        wakeLock={wakeLock}
       />
     );
   }
@@ -379,6 +380,7 @@ export default function CameraMonitor() {
       enrolledClasses={enrolledClasses}
       selectedClassId={selectedClassId}
       setSelectedClassId={setSelectedClassId}
+      wakeLock={wakeLock}
     />
   );
 }
@@ -402,7 +404,8 @@ function MobileCameraMonitor({
   setBrightnessBoost,
   enrolledClasses,
   selectedClassId,
-  setSelectedClassId
+  setSelectedClassId,
+  wakeLock
 }) {
   return (
     <div className="flex flex-col h-[calc(100vh-8.5rem)] w-full gap-4 relative animate-slide-up pb-10">
@@ -620,7 +623,8 @@ function DesktopCameraMonitor({
   setBrightnessBoost,
   enrolledClasses,
   selectedClassId,
-  setSelectedClassId
+  setSelectedClassId,
+  wakeLock
 }) {
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-slide-up pb-20 px-4 pt-4">

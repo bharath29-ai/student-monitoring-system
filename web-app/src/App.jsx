@@ -18,16 +18,25 @@ import Profile from '@/pages/Profile';
 import Security from '@/pages/Security';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
+import UserPendingApproval from '@/components/UserPendingApproval';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isAuthenticated, user } = useAuth();
 
   if (isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+          <p className="text-sm text-muted-foreground animate-pulse">Loading Smart Classroom...</p>
+        </div>
       </div>
     );
+  }
+
+  // Show pending approval screen for pending users
+  if (isAuthenticated && user && user.status === 'pending') {
+    return <UserPendingApproval />;
   }
 
   return (

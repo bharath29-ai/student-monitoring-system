@@ -1,0 +1,36 @@
+Navigating to login...
+Filling email and password...
+Clicking sign in button...
+Waiting for redirection...
+Final URL: http://localhost:5173/dashboard
+--- Final Page Text ---
+Dashboard
+ADMIN
+Hello, testadmin!
+CONTROL TERMINAL ACCESS
+System Approvals
+0
+Total Registered
+6
+Classroom Feeds
+11
+LAUNCH ADMIN PANEL
+Dashboard
+Admin
+Reports
+Success
+Logged in successfully as admin!
+-----------------------
+Retrieving application console logs...
+--- Application Console Logs ---
+[ERROR] Warning: Unknown event handler property `%s`. It will be ignored.%s onOpenChange 
+    at div
+    at _c5 (http://localhost:5173/src/components/ui/toast.jsx:75:41)
+    at div
+    at _c (http://localhost:5173/src/components/ui/toast.jsx:22:14)
+    at Toaster (http://localhost:5173/src/components/ui/toaster.jsx:29:31)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=df300600:3235:3)
+    at AuthProvider (http://localhost:5173/src/lib/AuthContext.jsx?t=1785987496590:23:32)
+    at ThemeProvider (http://localhost:5173/src/lib/ThemeContext.jsx:20:33)
+    at App
+--------------------------------

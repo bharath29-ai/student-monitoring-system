@@ -84,8 +84,13 @@ public class LoginActivity extends AppCompatActivity {
                                     String role = documentSnapshot.getString("role");
                                     
                                     if (name == null) name = email.split("@")[0];
-                                    if (role == null) role = "student";
+                                    if (role == null) {
+                                        mAuth.signOut();
+                                        Toast.makeText(this, "User role not assigned. Contact admin.", Toast.LENGTH_LONG).show();
+                                        return;
+                                    }
                                     
+                                    Toast.makeText(this, "Logged in as " + role, Toast.LENGTH_SHORT).show();
                                     session.startSession(userId, name, role);
                                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
                                     finish();

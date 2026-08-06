@@ -35,7 +35,7 @@ const PageTransition = ({ children }) => (
 );
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isAuthenticated, authError } = useAuth();
+  const { isLoadingAuth, isAuthenticated, user, authError } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking auth
@@ -48,6 +48,11 @@ const AuthenticatedApp = () => {
         </div>
       </div>
     );
+  }
+
+  // Show pending approval screen for pending users
+  if (isAuthenticated && user && user.status === 'pending') {
+    return <UserPendingApproval />;
   }
 
   // Handle specific auth errors

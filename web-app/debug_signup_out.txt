@@ -1,0 +1,102 @@
+Navigating to signup...
+Filling name and email...
+Opening role select...
+Selecting Student role...
+Filling passwords...
+Clicking register button...
+Waiting for redirection or error...
+Final URL: http://localhost:5173/signup
+--- Final Page Text ---
+Pending Approval
+Your account has been created successfully and is currently awaiting administrator approval. You will be able to access the dashboard once approved.
+What's next?
+Our administrators will review your registration. This usually takes less than 24 hours.
+Sign Out
+-----------------------
+Retrieving application console logs...
+--- Application Console Logs ---
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Signup render! role: student selectedTeacherId:  teachersCount: 0
+[LOG] Teachers snapshot loaded! fetched count: 1 fetched data: [{"id":"7j0Qrh852edinGXaoMcDNvyYsdk2","name":"testteacher"}]
+[LOG] Setting selectedTeacherId to: 7j0Qrh852edinGXaoMcDNvyYsdk2
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+[LOG] handleSignup called! name: Debug Student email: debugstudent_1785987148713@example.com role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 password: studentpass123 confirmPassword: studentpass123
+[LOG] Signup render! role: student selectedTeacherId: 7j0Qrh852edinGXaoMcDNvyYsdk2 teachersCount: 1
+--------------------------------

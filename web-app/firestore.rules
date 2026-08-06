@@ -22,7 +22,7 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() || resource.data.role == 'teacher';
       allow create: if isAuthenticated() && request.auth.uid == userId;
       allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
       allow delete: if isAdmin();
