@@ -47,8 +47,8 @@ export const AuthProvider = ({ children }) => {
               setAuthError(null);
             }
           } else {
-            // If document doesn't exist, wait a bit or handle gracefully
-            // For E2E stability, we'll allow a fallback if doc is missing temporarily
+            // Document doesn't exist yet - common during signup or slow sync
+            // We use a safe fallback for the UI to continue loading
             setUser({
               id: firebaseUser.uid,
               email: firebaseUser.email,
@@ -62,7 +62,14 @@ export const AuthProvider = ({ children }) => {
           setAuthChecked(true);
         }, (error) => {
           console.error("Error fetching user data:", error);
-          // If permission denied, we still want to stop loading
+          // If permission denied or other error, fallback to student to prevent infinite loading
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            role: 'student',
+            status: 'approved'
+          });
+          setIsAuthenticated(true);
           setIsLoadingAuth(false);
           setAuthChecked(true);
         });
