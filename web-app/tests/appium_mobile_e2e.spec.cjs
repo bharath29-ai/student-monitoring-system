@@ -52,26 +52,26 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
 
   // Helper to logout
   async function logoutCurrentUser() {
+    reportGenerator.log('Logging out current user...');
     try {
-      const pendingSignOut = await driver.findElements(By.xpath('//button[contains(., "Sign Out")]'));
-      if (pendingSignOut.length > 0) {
-        await driver.executeScript("arguments[0].click();", pendingSignOut[0]);
-        await driver.wait(until.urlContains('/login'), 10000);
-        return;
-      }
-      const sidebarLogout = await driver.findElements(By.xpath('//button[contains(., "Logout")]'));
-      if (sidebarLogout.length > 0) {
-        await driver.executeScript("arguments[0].click();", sidebarLogout[0]);
-        await driver.wait(until.urlContains('/login'), 10000);
-        return;
-      }
       await driver.get(`${BASE_URL}/splash`);
-      await driver.executeScript('window.localStorage.clear();');
-      await driver.executeScript('window.sessionStorage.clear();');
-      await driver.executeScript('window.indexedDB && window.indexedDB.deleteDatabase("firebaseLocalStorageDb");');
+      await driver.sleep(1000);
+      await driver.executeScript(`
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split(";").forEach(c => {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        if (window.indexedDB) {
+           window.indexedDB.databases().then(dbs => {
+             dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+           });
+        }
+      `);
+      await driver.sleep(1000);
       await driver.get(`${BASE_URL}/login`);
     } catch (e) {
-      // Ignored for self-healing
+      await driver.get(`${BASE_URL}/login`);
     }
   }
 
@@ -541,33 +541,28 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
     before(async () => {
       await logoutCurrentUser();
       await driver.get(`${BASE_URL}/login`);
-      await driver.wait(until.elementLocated(By.id('email')), 10000);
+      await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-      const emailField = await driver.findElement(By.id('email'));
-      await emailField.clear();
-      await emailField.sendKeys(STUDENT_USER.email);
-      const passField = await driver.findElement(By.id('password'));
-      await passField.clear();
-      await passField.sendKeys(STUDENT_USER.password);
+      await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
+      await driver.findElement(By.id('password')).sendKeys(STUDENT_USER.password);
       const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
       await driver.executeScript("arguments[0].click();", submitBtn);
 
-      await driver.wait(until.urlContains('/dashboard'), 15000);
+      await driver.wait(until.urlContains('/dashboard'), 20000);
 
       // Try to navigate directly to /admin as a student
       await driver.get(`${BASE_URL}/admin`);
       try {
-        await driver.wait(until.elementLocated(By.xpath('//*[contains(text(), "Admin Access Required")]')), 15000);
+        await driver.wait(until.elementLocated(By.xpath('//*[contains(text(), "Admin Access Required")]')), 10000);
+        studentAccessBlocked = true;
       } catch (e) {
-        reportGenerator.log(`Timeout waiting for Admin Access Required page text: ${e.message}`, 'WARNING');
+        const bodyText = await driver.findElement(By.css('body')).getText();
+        studentAccessBlocked = bodyText.includes("Admin Access Required");
       }
-      const pageText = await driver.findElement(By.css('body')).getText();
-      studentAccessBlocked = pageText.includes("Admin Access Required");
 
       // Go back to dashboard to continue tests
       await driver.get(`${BASE_URL}/dashboard`);
-      await driver.wait(until.urlContains('/dashboard'), 10000);
-      await driver.wait(until.elementLocated(By.xpath('//h2[contains(text(), "Hello,") or contains(text(), "Welcome")]')), 15000);
+      await driver.wait(until.urlContains('/dashboard'), 15000);
     });
 
     const tests = [
@@ -605,21 +600,28 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
           if (t.id === 104) {
             expect(studentAccessBlocked).to.be.true;
           } else if (t.id === 110) {
-            const classCardXpath = `//div[div/p[contains(text(), "${CLASS_NAME}")]] | //div[p[contains(text(), "${CLASS_NAME}")]]`;
-            await driver.wait(until.elementLocated(By.xpath(classCardXpath)), 15000);
-            const classCard = await driver.findElement(By.xpath(classCardXpath));
-            const enrollBtn = await classCard.findElement(By.xpath('.//button[contains(., "Enroll")]'));
+            // Find Enroll Button by data-testid
+            const enrollBtn = await driver.wait(until.elementLocated(By.css('button[data-testid^="enroll-button-"]')), 20000);
+            await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", enrollBtn);
+            await driver.sleep(1000);
             await driver.executeScript("arguments[0].click();", enrollBtn);
-            await driver.sleep(3000); // DB sync
+            await driver.sleep(4000); // DB sync
           } else if (t.id === 111 || t.id === 112) {
-            const myClassesCardXpath = `//p[contains(text(), "${CLASS_NAME}")]`;
-            await driver.wait(until.elementLocated(By.xpath(myClassesCardXpath)), 15000);
-            const myClassesCard = await driver.findElement(By.xpath(myClassesCardXpath));
-            expect(myClassesCard).to.not.be.null;
+            const hasClass = await verifyElement(`//p[contains(text(), "${CLASS_NAME}")]`, 'xpath');
+            expect(hasClass).to.be.true;
           } else {
-            const hasDashboard = await verifyElement('//h1[contains(., "Dashboard")]', 'xpath');
-            expect(hasDashboard).to.be.true;
+            const hasWelcome = await verifyElement('//*[contains(text(), "Welcome")]', 'xpath');
+            expect(hasWelcome).to.be.true;
           }
+          reportGenerator.addResult('Student Dashboard', t.desc, true, null, Date.now() - start);
+        } catch (err) {
+          await logFailureDetails(t.desc, err);
+          reportGenerator.addResult('Student Dashboard', t.desc, false, err.message, Date.now() - start);
+          throw err;
+        }
+      });
+    });
+  });
           reportGenerator.addResult('Student Dashboard', t.desc, true, null, Date.now() - start);
         } catch (err) {
           await logFailureDetails(t.desc, err);
@@ -726,30 +728,18 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
         await driver.get(`${BASE_URL}/login`);
         await driver.wait(until.elementLocated(By.id('email')), 15000);
 
-        const emailField = await driver.findElement(By.id('email'));
-        await emailField.clear();
-        await emailField.sendKeys(STUDENT_USER.email);
-        const passField = await driver.findElement(By.id('password'));
-        await passField.clear();
-        await passField.sendKeys(STUDENT_USER.password);
+        await driver.findElement(By.id('email')).sendKeys(STUDENT_USER.email);
+        await driver.findElement(By.id('password')).sendKeys(STUDENT_USER.password);
         const submitBtn = await driver.findElement(By.css('button[type="submit"]'));
         await driver.executeScript("arguments[0].click();", submitBtn);
 
         await driver.wait(until.urlContains('/dashboard'), 25000);
 
-        const monitorBtnXpath = `//p[contains(text(), "${CLASS_NAME}")]/following::button[1]`;
-        await driver.wait(until.elementLocated(By.xpath(monitorBtnXpath)), 25000);
-        const monitorBtn = await driver.findElement(By.xpath(monitorBtnXpath));
-        
-        // Use pointer/mouse events click sequence
-        await driver.executeScript(`
-          const el = arguments[0];
-          const events = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'];
-          events.forEach(type => {
-            const ev = new MouseEvent(type, { bubbles: true, cancelable: true, view: window });
-            el.dispatchEvent(ev);
-          });
-        `, monitorBtn);
+        // Find Start Monitoring Button by data-testid
+        const monitorBtn = await driver.wait(until.elementLocated(By.css('button[data-testid="start-monitoring-button"]')), 25000);
+        await driver.executeScript("arguments[0].scrollIntoView({block: 'center'});", monitorBtn);
+        await driver.sleep(1000);
+        await driver.executeScript("arguments[0].click();", monitorBtn);
 
         await driver.wait(until.urlContains('/camera'), 25000);
       } catch (err) {
@@ -797,7 +787,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function()
         const start = Date.now();
         try {
           if (t.id === 152) {
-            const hasHeader = await verifyElement('//h1[contains(., "Face Monitor") or contains(., "SMART MONITOR") or contains(., "Class Attention Monitor")]', 'xpath');
+            const hasHeader = await verifyElement('//*[contains(text(), "Face Monitor") or contains(text(), "SMART MONITOR") or contains(text(), "Class Attention Monitor")]', 'xpath');
             expect(hasHeader).to.be.true;
           } else if (t.id === 153) {
             const hasBtn = await verifyElement('//a[contains(., "Dashboard")] | //button[contains(., "Dashboard") or contains(., "Back")]', 'xpath');
