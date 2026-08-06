@@ -10,6 +10,10 @@ class ReportGenerator {
   }
 
   init() {
+    if (this.results.length > 0) {
+      this.log('Continuing existing test session. Cumulative results will be reported.');
+      return;
+    }
     this.results = [];
     this.startTime = Date.now();
     this.logs = [];
