@@ -23,19 +23,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'web-app/package-lock.json'
 
-      - name: Install Google Chrome
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor | sudo tee /usr/share/keyrings/google-chrome.gpg > /dev/null
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update -q
-          sudo apt-get install -y google-chrome-stable
-          google-chrome --version
-
-      - name: Install ChromeDriver
-        run: |
-          CHROME_MAJOR=$(google-chrome --version | grep -oP '\d+' | head -1)
-          npx -y chromedriver@${CHROME_MAJOR} || npx -y chromedriver@latest || true
-          which chromedriver && chromedriver --version || true
+      - name: Verify Chrome Installation
+        run: google-chrome --version
 
       - name: Install dependencies
         run: |
