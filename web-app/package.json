@@ -10,7 +10,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test:e2e": "mocha tests/**/*.spec.cjs"
+    "test:e2e": "mocha tests/**/*.spec.cjs --exit"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
