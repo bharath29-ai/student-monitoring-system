@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd web-app
-          npm ci
+          npm ci || npm install --no-audit --no-fund
 
       - name: Run Load Tests
         run: |
