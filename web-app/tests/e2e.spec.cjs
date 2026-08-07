@@ -15,7 +15,7 @@ const STUDENT_USER = {
 };
 const CLASS_NAME = `Math E2E Class_${TEST_TIMESTAMP}`;
 
-const SCREENSHOT_DIR = 'C:/Users/Bharath Reddy/.gemini/antigravity-ide/brain/f754c681-8e9c-443c-8ddd-766c9eabd680';
+const SCREENSHOT_DIR = process.env.SCREENSHOT_DIR || path.join(__dirname, '../screenshots');
 
 // Smart Classroom Pulse - E2E Test Suite
 describe('Smart Classroom Pulse - E2E Test Suite', function() {

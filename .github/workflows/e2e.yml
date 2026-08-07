@@ -1,5 +1,5 @@
-# Load Testing Pipeline for Smart Class Pulse
-name: Load Testing Pipeline
+# Automated Testing Pipeline for Smart Class Pulse (Selenium E2E & Artillery Load Tests)
+name: Automated Testing Pipeline
 
 on:
   push:
@@ -9,7 +9,58 @@ on:
   workflow_dispatch:
 
 jobs:
+  selenium-e2e:
+    name: Selenium E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'web-app/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd web-app
+          npm ci || npm install --no-audit --no-fund
+
+      - name: Build Web App
+        run: |
+          cd web-app
+          npm run build
+
+      - name: Start Web App Preview Server
+        run: |
+          cd web-app
+          npx vite preview --port 5173 &
+          echo "Waiting for http://localhost:5173 to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:5173 > /dev/null; then
+              echo "Preview server is ready!"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Selenium E2E Tests
+        run: |
+          cd web-app
+          npm run test:e2e
+
+      - name: Upload Selenium Test Report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-e2e-test-results
+          path: web-app/test-results.xlsx
+          if-no-files-found: warn
+
   load-test:
+    name: Artillery Load Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -43,4 +94,5 @@ jobs:
           name: load-test-results
           path: web-app/load-test-results.xlsx
           if-no-files-found: warn
+
 
