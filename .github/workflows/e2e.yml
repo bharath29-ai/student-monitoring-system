@@ -97,3 +97,11 @@ jobs:
         run: |
           cd web-app
           npm run test:load
+
+      - name: Upload Load Test Report (Excel)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: load-test-results
+          path: web-app/load-test-results.xlsx
+          if-no-files-found: warn

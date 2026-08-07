@@ -11,7 +11,7 @@
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
     "test:e2e": "mocha tests/**/*.spec.cjs --exit",
-    "test:load": "artillery run tests/load-test.yml"
+    "test:load": "artillery run tests/load-test.yml --output load-report.json && node tests/loadReportConverter.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
