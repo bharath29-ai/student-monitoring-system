@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test:e2e": "mocha tests/**/*.spec.cjs --exit",
+    "test:e2e": "mocha tests/e2e.spec.cjs --exit",
+    "test:mobile": "mocha tests/appium_mobile_e2e.spec.cjs --exit",
     "test:load": "npx artillery run tests/load-test.yml --output load-report.json && node tests/loadReportConverter.cjs"
   },
   "dependencies": {

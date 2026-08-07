@@ -15,7 +15,7 @@ const STUDENT_USER = {
 };
 const CLASS_NAME = `Mobile Math Class_${TEST_TIMESTAMP}`;
 
-const SCREENSHOT_DIR = 'C:/Users/Bharath Reddy/.gemini/antigravity-ide/brain/f754c681-8e9c-443c-8ddd-766c9eabd680';
+const SCREENSHOT_DIR = process.env.SCREENSHOT_DIR || path.join(__dirname, '../screenshots');
 
 describe('Smart Classroom Pulse - Mobile E2E Test Suite (200 Cases)', function() {
   this.timeout(400000); // Extended timeout for 200 test cases
