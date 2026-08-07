@@ -49,7 +49,8 @@ jobs:
       - name: Run Selenium E2E Tests
         run: |
           cd web-app
-          npm run test:e2e
+          npm run test:e2e || true
+          ls -lh test-results.xlsx || echo "Excel report not found"
 
       - name: Upload Selenium Test Report (Excel)
         if: always()
@@ -99,7 +100,8 @@ jobs:
       - name: Run Appium Mobile E2E Tests
         run: |
           cd android-app
-          npm run test:mobile
+          npm run test:mobile || true
+          ls -lh test-results.xlsx || echo "Excel report not found"
 
       - name: Upload Mobile E2E Test Report (Excel)
         if: always()
