@@ -3,12 +3,23 @@ const path = require('path');
 const ExcelJS = require('exceljs');
 
 async function convert(jsonPath, excelPath) {
+  console.log(`Starting conversion: ${jsonPath} -> ${excelPath}`);
+
   if (!fs.existsSync(jsonPath)) {
-    console.error(`Source file not found: ${jsonPath}`);
-    return;
+    throw new Error(`Artillery JSON report not found at: ${jsonPath}. Did the load test run successfully?`);
   }
 
-  const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+  const fileContent = fs.readFileSync(jsonPath, 'utf8');
+  if (!fileContent || fileContent.trim() === '') {
+    throw new Error(`Artillery JSON report is empty: ${jsonPath}`);
+  }
+
+  let data;
+  try {
+    data = JSON.parse(fileContent);
+  } catch (e) {
+    throw new Error(`Failed to parse Artillery JSON report: ${e.message}. Content starts with: ${fileContent.substring(0, 100)}`);
+  }
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Load Test Report');
 
