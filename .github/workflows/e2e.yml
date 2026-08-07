@@ -8,10 +8,15 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   selenium-e2e:
     name: Selenium E2E Tests
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,6 +68,8 @@ jobs:
   appium-mobile-e2e:
     name: Appium Mobile E2E Tests (Android App)
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -114,6 +121,8 @@ jobs:
   load-test:
     name: Artillery Load Tests
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -133,8 +142,6 @@ jobs:
       - name: Run Load Tests
         run: |
           cd web-app
-          # Use npx to ensure artillery is used from node_modules
-          # Use || true to ensure the report converter runs even if artillery reports errors
           npx artillery run tests/load-test.yml --output load-report.json || true
           node tests/loadReportConverter.cjs
           ls -lh load-test-results.xlsx || echo "Excel report not found"
@@ -146,6 +153,3 @@ jobs:
           name: load-test-results
           path: web-app/load-test-results.xlsx
           if-no-files-found: warn
-
-
-
