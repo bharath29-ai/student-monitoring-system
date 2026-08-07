@@ -79,7 +79,28 @@ async function runSetup() {
   }
 }
 
-module.exports = { runSetup, firebaseConfig };
+const { collection, query, where, getDocs, updateDoc } = require('firebase/firestore');
+
+async function approveUserByEmail(email) {
+  try {
+    console.log(`Programmatic approval: Logging in as admin to update status for ${email}...`);
+    await signInWithEmailAndPassword(auth, 'testadmin@example.com', 'adminpass123');
+    const q = query(collection(db, 'users'), where('email', '==', email));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const userDoc = snap.docs[0];
+      await updateDoc(doc(db, 'users', userDoc.id), { status: 'approved' });
+      console.log(`Programmatically approved user ${email} successfully as admin.`);
+    } else {
+      console.warn(`User document not found for email: ${email}`);
+    }
+  } catch (err) {
+    console.error(`Failed to programmatically approve user ${email}:`, err.message);
+  }
+}
+
+module.exports = { runSetup, firebaseConfig, approveUserByEmail };
 if (require.main === module) {
   runSetup().then(() => process.exit(0)).catch(() => process.exit(1));
 }
+

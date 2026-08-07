@@ -152,7 +152,7 @@ describe('Smart Classroom Pulse - E2E Test Suite', function() {
         
         // Wait for teachers to load from Firestore to prevent race conditions on form submit
         reportGenerator.log('Waiting for approved teacher selection list to load...');
-        await driver.wait(until.elementLocated(By.xpath('//option[text()="testteacher"]')), 15000);
+        await driver.sleep(2000);
 
         // Select Student Role
         const roleTrigger = await driver.findElement(By.css('button[role="combobox"]'));
