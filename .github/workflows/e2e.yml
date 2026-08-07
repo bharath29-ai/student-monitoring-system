@@ -60,7 +60,7 @@ jobs:
           if-no-files-found: warn
 
   appium-mobile-e2e:
-    name: Appium Mobile E2E Tests
+    name: Appium Mobile E2E Tests (Android App)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -71,21 +71,21 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-          cache-dependency-path: 'web-app/package-lock.json'
+          cache-dependency-path: 'android-app/package-lock.json'
 
       - name: Install dependencies
         run: |
-          cd web-app
+          cd android-app
           npm ci || npm install --no-audit --no-fund
 
-      - name: Build Web App
+      - name: Build Android App
         run: |
-          cd web-app
+          cd android-app
           npm run build
 
-      - name: Start Web App Preview Server
+      - name: Start Android App Preview Server
         run: |
-          cd web-app
+          cd android-app
           npx vite preview --port 5173 &
           echo "Waiting for http://localhost:5173 to be ready..."
           for i in {1..30}; do
@@ -98,7 +98,7 @@ jobs:
 
       - name: Run Appium Mobile E2E Tests
         run: |
-          cd web-app
+          cd android-app
           npm run test:mobile
 
       - name: Upload Mobile E2E Test Report (Excel)
@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: appium-mobile-e2e-test-results
-          path: web-app/test-results.xlsx
+          path: android-app/test-results.xlsx
           if-no-files-found: warn
 
   load-test:

@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test:e2e": "mocha tests/**/*.spec.cjs"
+    "test:e2e": "mocha tests/e2e.spec.cjs --exit",
+    "test:mobile": "mocha tests/appium_mobile_e2e.spec.cjs --exit"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
