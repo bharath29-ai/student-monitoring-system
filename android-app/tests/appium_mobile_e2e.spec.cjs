@@ -415,18 +415,18 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
       { id: 106, desc: 'Footer links are hidden in pending state' },
       { id: 107, desc: 'Refreshing page keeps pending status' },
       { id: 108, desc: 'Sign Out button triggers session clear' },
-      { id: 109, desc: 'Sign Out redirects user to login screen' },
-      { id: 110, desc: 'Pending view utilizes correct grid columns' },
-      { id: 111, desc: 'Hourglass pulse animation class is active' },
-      { id: 112, desc: 'Administrator notification advisory is visible' },
-      { id: 113, desc: 'Status badge pill displays Pending label' },
-      { id: 114, desc: 'Mobile card elevation aligns with surface styles' },
-      { id: 115, desc: 'Account verification guidance text is provided' },
-      { id: 116, desc: 'Re-checking authorization status works dynamically' },
-      { id: 117, desc: 'Session token stored safely in local state' },
-      { id: 118, desc: 'Protected classroom links reject access' },
-      { id: 119, desc: 'Helpdesk support link is formatted properly' },
-      { id: 120, desc: 'Safe session exit clears credentials completely' }
+      { id: 109, desc: 'Pending view utilizes correct grid columns' },
+      { id: 110, desc: 'Hourglass pulse animation class is active' },
+      { id: 111, desc: 'Administrator notification advisory is visible' },
+      { id: 112, desc: 'Status badge pill displays Pending label' },
+      { id: 113, desc: 'Mobile card elevation aligns with surface styles' },
+      { id: 114, desc: 'Account verification guidance text is provided' },
+      { id: 115, desc: 'Re-checking authorization status works dynamically' },
+      { id: 116, desc: 'Session token stored safely in local state' },
+      { id: 117, desc: 'Protected classroom links reject access' },
+      { id: 118, desc: 'Helpdesk support link is formatted properly' },
+      { id: 119, desc: 'Safe session exit clears credentials completely' },
+      { id: 120, desc: 'Sign Out redirects user to login screen' }
     ];
 
     tests.forEach(t => {
@@ -439,7 +439,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
           } else if (t.id === 100) {
             const hasBtn = await verifyElement('//button[contains(., "Sign Out")]', 'xpath');
             expect(hasBtn).to.be.true;
-          } else if (t.id === 109) {
+          } else if (t.id === 120) {
             await logoutCurrentUser();
             const url = await driver.getCurrentUrl();
             expect(url).to.include('/login');
@@ -524,22 +524,22 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
       { id: 137, desc: 'Newly created class shows in classrooms list' },
       { id: 138, desc: 'Classes list layout contains correct cards' },
       { id: 139, desc: 'Responsive navigation triggers visible on screen' },
-      { id: 140, desc: 'Sign out from admin panel succeeds' },
-      { id: 141, desc: 'Admin header displays system administration title' },
-      { id: 142, desc: 'Stats counter badge displays total user metrics' },
-      { id: 143, desc: 'Search filter input searches approvals by email' },
-      { id: 144, desc: 'Teacher selection dropdown populates active faculty' },
-      { id: 145, desc: 'Class card details show assigned instructor' },
-      { id: 146, desc: 'Student enrollment count shows on class card' },
-      { id: 147, desc: 'Delete class button is styled with destructive variant' },
-      { id: 148, desc: 'Students tab renders enrolled students table' },
-      { id: 149, desc: 'Teachers tab lists registered educators' },
-      { id: 150, desc: 'Status badges show green pill for approved users' },
-      { id: 151, desc: 'Tab switching executes with smooth animations' },
-      { id: 152, desc: 'Admin panel layout remains responsive on 375px' },
-      { id: 153, desc: 'Toast confirmation shows on classroom creation' },
-      { id: 154, desc: 'Audit log table container renders cleanly' },
-      { id: 155, desc: 'Role authorization safeguards prevent privilege escalation' }
+      { id: 140, desc: 'Admin header displays system administration title' },
+      { id: 141, desc: 'Stats counter badge displays total user metrics' },
+      { id: 142, desc: 'Search filter input searches approvals by email' },
+      { id: 143, desc: 'Teacher selection dropdown populates active faculty' },
+      { id: 144, desc: 'Class card details show assigned instructor' },
+      { id: 145, desc: 'Student enrollment count shows on class card' },
+      { id: 146, desc: 'Delete class button is styled with destructive variant' },
+      { id: 147, desc: 'Students tab renders enrolled students table' },
+      { id: 148, desc: 'Teachers tab lists registered educators' },
+      { id: 149, desc: 'Status badges show green pill for approved users' },
+      { id: 150, desc: 'Tab switching executes with smooth animations' },
+      { id: 151, desc: 'Admin panel layout remains responsive on 375px' },
+      { id: 152, desc: 'Toast confirmation shows on classroom creation' },
+      { id: 153, desc: 'Audit log table container renders cleanly' },
+      { id: 154, desc: 'Role authorization safeguards prevent privilege escalation' },
+      { id: 155, desc: 'Sign out from admin panel succeeds' }
     ];
 
     tests.forEach(t => {
@@ -623,7 +623,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
           } else if (t.id === 139) {
             const tabsList = await verifyElement('[role="tablist"]');
             expect(tabsList).to.be.true;
-          } else if (t.id === 140) {
+          } else if (t.id === 155) {
             await logoutCurrentUser();
             const url = await driver.getCurrentUrl();
             expect(url).to.include('/login');
@@ -697,20 +697,20 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
       { id: 174, desc: 'Dark mode selector changes client style theme' },
       { id: 175, desc: 'Offline support mode triggers connection banner' },
       { id: 176, desc: 'FAQ section answers accordion renders' },
-      { id: 177, desc: 'Quick logout triggers login page redirect' },
-      { id: 178, desc: 'Mobile tap actions are fully responsive' },
-      { id: 179, desc: 'Announcement widgets render content text' },
-      { id: 180, desc: 'Support chat button renders in bottom right' },
-      { id: 181, desc: 'Student greeting card includes graduation cap icon' },
-      { id: 182, desc: 'Enrolled class card shows assigned instructor' },
-      { id: 183, desc: 'Monitoring action launches camera interface directly' },
-      { id: 184, desc: 'Student attention streak metrics are visible' },
-      { id: 185, desc: 'Weekly attention summary graph displays trend' },
-      { id: 186, desc: 'Badges and achievements container renders' },
-      { id: 187, desc: 'Quick assessment quiz reminder pill exists' },
-      { id: 188, desc: 'Class schedule timeline displays class periods' },
-      { id: 189, desc: 'Study resource link accordion opens correctly' },
-      { id: 190, desc: 'Student session cleanup executes cleanly' }
+      { id: 177, desc: 'Mobile tap actions are fully responsive' },
+      { id: 178, desc: 'Announcement widgets render content text' },
+      { id: 179, desc: 'Support chat button renders in bottom right' },
+      { id: 180, desc: 'Student greeting card includes graduation cap icon' },
+      { id: 181, desc: 'Enrolled class card shows assigned instructor' },
+      { id: 182, desc: 'Monitoring action launches camera interface directly' },
+      { id: 183, desc: 'Student attention streak metrics are visible' },
+      { id: 184, desc: 'Weekly attention summary graph displays trend' },
+      { id: 185, desc: 'Badges and achievements container renders' },
+      { id: 186, desc: 'Quick assessment quiz reminder pill exists' },
+      { id: 187, desc: 'Class schedule timeline displays class periods' },
+      { id: 188, desc: 'Study resource link accordion opens correctly' },
+      { id: 189, desc: 'Student session cleanup executes cleanly' },
+      { id: 190, desc: 'Quick logout triggers login page redirect' }
     ];
 
     tests.forEach(t => {
@@ -728,6 +728,10 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
           } else if (t.id === 166 || t.id === 167) {
             const hasClass = await verifyElement(`//p[contains(text(), "${CLASS_NAME}")]`, 'xpath');
             expect(hasClass).to.be.true;
+          } else if (t.id === 190) {
+            await logoutCurrentUser();
+            const url = await driver.getCurrentUrl();
+            expect(url).to.include('/login');
           } else {
             const hasWelcome = await verifyElement('//*[contains(text(), "Welcome")]', 'xpath');
             expect(hasWelcome).to.be.true;
@@ -794,17 +798,17 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
       { id: 212, desc: 'Save session button has styling properties' },
       { id: 213, desc: 'Realtime active class status indicates live tracking' },
       { id: 214, desc: 'Theme configurations function properly' },
-      { id: 215, desc: 'Sign out from teacher dashboard succeeds' },
-      { id: 216, desc: 'Refresh telemetry sync button triggers poll' },
-      { id: 217, desc: 'Live engagement sync status pill pulses' },
-      { id: 218, desc: 'Classroom attention gauge renders radial progress' },
-      { id: 219, desc: 'Student focus score thresholds indicate color tiers' },
-      { id: 220, desc: 'Broadcast class alert modal button is accessible' },
-      { id: 221, desc: 'Export class attendance roster triggers download' },
-      { id: 222, desc: 'Audio chime notification toggle is functional' },
-      { id: 223, desc: 'Realtime WebSocket or Firestore channel connected' },
-      { id: 224, desc: 'Teacher dashboard cards scale smoothly across breakpoints' },
-      { id: 225, desc: 'Class session timer calculates elapsed duration' }
+      { id: 215, desc: 'Refresh telemetry sync button triggers poll' },
+      { id: 216, desc: 'Live engagement sync status pill pulses' },
+      { id: 217, desc: 'Classroom attention gauge renders radial progress' },
+      { id: 218, desc: 'Student focus score thresholds indicate color tiers' },
+      { id: 219, desc: 'Broadcast class alert modal button is accessible' },
+      { id: 220, desc: 'Export class attendance roster triggers download' },
+      { id: 221, desc: 'Audio chime notification toggle is functional' },
+      { id: 222, desc: 'Realtime WebSocket or Firestore channel connected' },
+      { id: 223, desc: 'Teacher dashboard cards scale smoothly across breakpoints' },
+      { id: 224, desc: 'Class session timer calculates elapsed duration' },
+      { id: 225, desc: 'Sign out from teacher dashboard succeeds' }
     ];
 
     tests.forEach(t => {
@@ -826,7 +830,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
           } else if (t.id === 196) {
             const hasSleepy = await verifyElement('//*[contains(., "Sleepy") or contains(., "Eyes Closed")]', 'xpath');
             expect(hasSleepy).to.be.true;
-          } else if (t.id === 215) {
+          } else if (t.id === 225) {
             await logoutCurrentUser();
             const url = await driver.getCurrentUrl();
             expect(url).to.include('/login');
@@ -898,17 +902,17 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
       { id: 247, desc: 'Responsive flex layout updates sizing' },
       { id: 248, desc: 'Page maintains full screen size parameters' },
       { id: 249, desc: 'Offline sync warnings alert is rendered' },
-      { id: 250, desc: 'Sign out from camera monitor succeeds' },
-      { id: 251, desc: 'Eye Aspect Ratio (EAR) metric indicator renders' },
-      { id: 252, desc: 'Head pose yaw and pitch telemetry values display' },
-      { id: 253, desc: 'Blink rate tracker calculates blinks per minute' },
-      { id: 254, desc: 'Facial landmarks mesh overlay toggle works' },
-      { id: 255, desc: 'Audio alarm threshold slider is adjustable' },
-      { id: 256, desc: 'Snapshot capture button generates frame preview' },
-      { id: 257, desc: 'Lighting intensity warning triggers on dark frames' },
-      { id: 258, desc: 'Realtime FPS performance indicator updates' },
-      { id: 259, desc: 'WebRTC media stream track safely releases on exit' },
-      { id: 260, desc: 'Session analytics data batch syncs to Firestore' }
+      { id: 250, desc: 'Eye Aspect Ratio (EAR) metric indicator renders' },
+      { id: 251, desc: 'Head pose yaw and pitch telemetry values display' },
+      { id: 252, desc: 'Blink rate tracker calculates blinks per minute' },
+      { id: 253, desc: 'Facial landmarks mesh overlay toggle works' },
+      { id: 254, desc: 'Audio alarm threshold slider is adjustable' },
+      { id: 255, desc: 'Snapshot capture button generates frame preview' },
+      { id: 256, desc: 'Lighting intensity warning triggers on dark frames' },
+      { id: 257, desc: 'Realtime FPS performance indicator updates' },
+      { id: 258, desc: 'WebRTC media stream track safely releases on exit' },
+      { id: 259, desc: 'Session analytics data batch syncs to Firestore' },
+      { id: 260, desc: 'Sign out from camera monitor succeeds' }
     ];
 
     tests.forEach(t => {
@@ -921,7 +925,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
           } else if (t.id === 228) {
             const hasBtn = await verifyElement('//a[contains(., "Dashboard")] | //button[contains(., "Dashboard") or contains(., "Back")]', 'xpath');
             expect(hasBtn).to.be.true;
-          } else if (t.id === 250) {
+          } else if (t.id === 260) {
             await logoutCurrentUser();
             const url = await driver.getCurrentUrl();
             expect(url).to.include('/login');
@@ -979,22 +983,22 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
       { id: 272, desc: 'Chart resizing functionality matches dimensions' },
       { id: 273, desc: 'Share analytics report email popup is visible' },
       { id: 274, desc: 'Filter thresholds dropdown option works' },
-      { id: 275, desc: 'Sign out from reports page redirects to login' },
-      { id: 276, desc: 'Subject performance breakdown tab renders' },
-      { id: 277, desc: 'Weekly attention comparison trends chart draws' },
-      { id: 278, desc: 'Peak distraction hours heatmap displays metrics' },
-      { id: 279, desc: 'Student ranking list highlights top performers' },
-      { id: 280, desc: 'Export data format options include JSON and Excel' },
-      { id: 281, desc: 'Date preset buttons (Today, Week, Month) update graph' },
-      { id: 282, desc: 'Teacher session remarks notes container is present' },
-      { id: 283, desc: 'Alert incident log table itemizes distraction triggers' },
-      { id: 284, desc: 'Download raw metrics JSON file button executes' },
-      { id: 285, desc: 'Aggregate class performance KPI cards display values' },
-      { id: 286, desc: 'High risk student alert badge displays in red' },
-      { id: 287, desc: 'Search reports table by student name filters rows' },
-      { id: 288, desc: 'Sort reports table by score column functions' },
-      { id: 289, desc: 'Print preview dialog launches on print button click' },
-      { id: 290, desc: 'Custom date range modal accepts start and end date' }
+      { id: 275, desc: 'Subject performance breakdown tab renders' },
+      { id: 276, desc: 'Weekly attention comparison trends chart draws' },
+      { id: 277, desc: 'Peak distraction hours heatmap displays metrics' },
+      { id: 278, desc: 'Student ranking list highlights top performers' },
+      { id: 279, desc: 'Export data format options include JSON and Excel' },
+      { id: 280, desc: 'Date preset buttons (Today, Week, Month) update graph' },
+      { id: 281, desc: 'Teacher session remarks notes container is present' },
+      { id: 282, desc: 'Alert incident log table itemizes distraction triggers' },
+      { id: 283, desc: 'Download raw metrics JSON file button executes' },
+      { id: 284, desc: 'Aggregate class performance KPI cards display values' },
+      { id: 285, desc: 'High risk student alert badge displays in red' },
+      { id: 286, desc: 'Search reports table by student name filters rows' },
+      { id: 287, desc: 'Sort reports table by score column functions' },
+      { id: 288, desc: 'Print preview dialog launches on print button click' },
+      { id: 289, desc: 'Custom date range modal accepts start and end date' },
+      { id: 290, desc: 'Sign out from reports page redirects to login' }
     ];
 
     tests.forEach(t => {
@@ -1007,7 +1011,7 @@ describe('Smart Classroom Pulse - Mobile E2E Test Suite (345 Cases)', function()
           } else if (t.id === 267) {
             const hasPdf = await verifyElement('//button[contains(., "PDF") or contains(., "Export")]', 'xpath');
             expect(hasPdf).to.be.true;
-          } else if (t.id === 275) {
+          } else if (t.id === 290) {
             await logoutCurrentUser();
             const url = await driver.getCurrentUrl();
             expect(url).to.include('/login');
